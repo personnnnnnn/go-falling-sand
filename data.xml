@@ -1,0 +1,8 @@
+<elements>
+  <element name="sand">
+    <display>
+      <color>yellow</color>
+      <name>Sand</name>
+    </display>
+  </element>
+</elements>
