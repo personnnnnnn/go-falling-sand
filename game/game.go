@@ -67,12 +67,19 @@ type ElementData struct {
 }
 
 type Game struct {
-	elementIdCounter int
-	DefaultElement   int
-	ElementTypes     map[string]int
-	ElementData      map[int]ElementData
-	Width, Height    int
-	Cells            []Cell
+	elementIdCounter        int
+	DefaultElement          int
+	ElementTypes            map[string]int
+	ElementData             map[int]ElementData
+	Width, Height           int
+	ChunkWidth, ChunkHeight int
+	Chunks                  []Chunk
+}
+
+type Chunk struct {
+	X, Y  int
+	Game  *Game
+	Cells []Cell
 }
 
 func (g *Game) DefineElement(elementTypeName string, color string, name string, isDefault bool) error {
@@ -100,21 +107,23 @@ func (g *Game) DefineElement(elementTypeName string, color string, name string, 
 }
 
 type Cell struct {
-	Type int
-	X, Y int
-	Game *Game
+	X, Y  int
+	Type  int
+	Chunk *Chunk
 }
 
 func (game *Game) Area() int {
 	return game.Width * game.Height
 }
 
-func NewGame(width, height int, xmlData []byte) (*Game, error) {
+func NewGame(width, height int, chunkWidth, chunkHeight int, xmlData []byte) (*Game, error) {
 	game := &Game{}
 
 	game.elementIdCounter = 0
 	game.Width = width
 	game.Height = height
+	game.ChunkWidth = chunkWidth
+	game.ChunkHeight = chunkHeight
 	game.ElementData = map[int]ElementData{}
 	game.ElementTypes = map[string]int{}
 
@@ -143,23 +152,41 @@ func NewGame(width, height int, xmlData []byte) (*Game, error) {
 		}
 	}
 
-	game.Cells = make([]Cell, game.Area())
+	game.Chunks = make([]Chunk, game.Area())
 	for x := 0; x < game.Width; x++ {
 		for y := 0; y < game.Height; y++ {
-			i := game.CalculateIndex(x, y)
-			game.Cells[i] = Cell{
-				X: x, Y: y,
-				Type: game.DefaultElement,
-				Game: game,
-			}
+			i := game.CalculateChunkIndex(x, y)
+			game.Chunks[i] = NewChunk(game, x, y)
 		}
 	}
 
 	return game, nil
 }
 
-func (g *Game) CalculateIndex(x, y int) int {
+func NewChunk(game *Game, x, y int) Chunk {
+	chunk := Chunk{}
+	chunk.Game = game
+	chunk.X = x
+	chunk.Y = y
+	for x := 0; x < game.ChunkWidth; x++ {
+		for y := 0; y < game.ChunkHeight; y++ {
+			i := game.CalculateCellIndex(x, y)
+			chunk.Cells[i] = Cell{
+				X: x, Y: y,
+				Type:  game.DefaultElement,
+				Chunk: &chunk,
+			}
+		}
+	}
+	return chunk
+}
+
+func (g *Game) CalculateChunkIndex(x, y int) int {
 	return x + y*g.Width
+}
+
+func (g *Game) CalculateCellIndex(x, y int) int {
+	return x + y*g.ChunkWidth
 }
 
 func (game *Game) Layout(outsizeWidth, outsizeHeight int) (int, int) {
