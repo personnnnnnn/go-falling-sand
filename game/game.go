@@ -143,7 +143,23 @@ func NewGame(width, height int, xmlData []byte) (*Game, error) {
 		}
 	}
 
+	game.Cells = make([]Cell, game.Area())
+	for x := 0; x < game.Width; x++ {
+		for y := 0; y < game.Height; y++ {
+			i := game.CalculateIndex(x, y)
+			game.Cells[i] = Cell{
+				X: x, Y: y,
+				Type: game.DefaultElement,
+				Game: game,
+			}
+		}
+	}
+
 	return game, nil
+}
+
+func (g *Game) CalculateIndex(x, y int) int {
+	return x + y*g.Width
 }
 
 func (game *Game) Layout(outsizeWidth, outsizeHeight int) (int, int) {
