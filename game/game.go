@@ -16,7 +16,6 @@ var Dimensions = struct {
 	Width, Height, ScreenWidth, ScreenHeight int
 }{400, 400, 600, 600}
 
-// HexStringToColor converts a hex color string (e.g., "#1A2B3C") to a color.Color.
 func HexStringToColor(s string) (color.Color, error) {
 	if len(s) != 7 || s[0] != '#' {
 		return color.Black, errors.New("invalid hex color")
@@ -112,7 +111,11 @@ type Cell struct {
 	Chunk *Chunk
 }
 
-func (game *Game) Area() int {
+func (game *Game) ChunkArea() int {
+	return game.ChunkWidth * game.ChunkHeight
+}
+
+func (game *Game) WorldArea() int {
 	return game.Width * game.Height
 }
 
@@ -152,7 +155,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, xmlData []byte) (*G
 		}
 	}
 
-	game.Chunks = make([]Chunk, game.Area())
+	game.Chunks = make([]Chunk, game.WorldArea())
 	for x := 0; x < game.Width; x++ {
 		for y := 0; y < game.Height; y++ {
 			i := game.CalculateChunkIndex(x, y)
@@ -168,6 +171,7 @@ func NewChunk(game *Game, x, y int) Chunk {
 	chunk.Game = game
 	chunk.X = x
 	chunk.Y = y
+	chunk.Cells = make([]Cell, game.ChunkArea())
 	for x := 0; x < game.ChunkWidth; x++ {
 		for y := 0; y < game.ChunkHeight; y++ {
 			i := game.CalculateCellIndex(x, y)
