@@ -125,11 +125,14 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 	game := &Game{}
 
 	game.elementIdCounter = 0
+
 	game.Width = width
 	game.Height = height
+
 	game.ChunkWidth = chunkWidth
 	game.ChunkHeight = chunkHeight
 	game.CellSize = cellSize
+
 	game.ElementData = map[int]ElementData{}
 	game.ElementTypes = map[string]int{}
 
@@ -138,6 +141,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 
 	for i := range commands.Elements {
 		command := commands.Elements[i]
+
 		display := command.Display
 		if display == nil {
 			display = &xmlhandler.XMLDisplay{}
@@ -162,6 +166,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 	for x := 0; x < game.Width; x++ {
 		for y := 0; y < game.Height; y++ {
 			i := game.CalculateChunkIndex(x, y)
+
 			game.Chunks[i] = NewChunk(game, x, y)
 		}
 	}
@@ -171,13 +176,19 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 
 func NewChunk(game *Game, x, y int) Chunk {
 	chunk := Chunk{}
+
 	chunk.Game = game
+
 	chunk.X = x
 	chunk.Y = y
+
 	chunk.Cells = make([]Cell, game.ChunkArea())
+
 	for x := 0; x < game.ChunkWidth; x++ {
 		for y := 0; y < game.ChunkHeight; y++ {
+
 			i := game.CalculateCellIndex(x, y)
+
 			chunk.Cells[i] = Cell{
 				X: x, Y: y,
 				Type:  game.DefaultElement,
@@ -185,6 +196,7 @@ func NewChunk(game *Game, x, y int) Chunk {
 			}
 		}
 	}
+
 	return chunk
 }
 
@@ -201,24 +213,25 @@ func (game *Game) Layout(outsizeWidth, outsizeHeight int) (int, int) {
 }
 
 func (game *Game) Draw(screen *ebiten.Image) {
-
 	screen.Fill(color.Black)
 
 	for x := 0; x < game.Width; x++ {
 		for y := 0; y < game.Height; y++ {
 			i := game.CalculateChunkIndex(x, y)
+
 			chunk := game.Chunks[i]
 			chunk.Draw(screen)
 		}
 	}
-
 }
 
 func (chunk *Chunk) Draw(screen *ebiten.Image) {
 	for x := 0; x < chunk.Game.ChunkWidth; x++ {
 		for y := 0; y < chunk.Game.ChunkHeight; y++ {
 			i := chunk.Game.CalculateCellIndex(x, y)
+
 			cell := chunk.Cells[i]
+
 			vector.DrawFilledRect(
 				screen,
 				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize,
