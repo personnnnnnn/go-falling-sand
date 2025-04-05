@@ -1,10 +1,13 @@
 package game
 
 import (
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"image/color"
 	"strconv"
+
+	"go-falling-sand/xml_handler"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -60,17 +63,19 @@ type ElementData struct {
 	Name            string
 	ElementTypeName string
 	ElementTypeID   int
+	IsDefault       bool
 }
 
 type Game struct {
 	elementIdCounter int
+	DefaultElement   int
 	ElementTypes     map[string]int
 	ElementData      map[int]ElementData
 	Width, Height    int
 	Cells            []Cell
 }
 
-func (g *Game) DefineElement(elementTypeName string, color string, name string) error {
+func (g *Game) DefineElement(elementTypeName string, color string, name string, isDefault bool) error {
 	var col, colErr = StringToColor(color)
 	if colErr != nil {
 		return colErr
@@ -82,6 +87,11 @@ func (g *Game) DefineElement(elementTypeName string, color string, name string) 
 		Name:            name,
 		ElementTypeName: elementTypeName,
 		ElementTypeID:   g.elementIdCounter,
+		IsDefault:       isDefault,
+	}
+
+	if isDefault {
+		g.DefaultElement = g.elementIdCounter
 	}
 
 	g.elementIdCounter++
@@ -93,6 +103,47 @@ type Cell struct {
 	Type int
 	X, Y int
 	Game *Game
+}
+
+func (game *Game) Area() int {
+	return game.Width * game.Height
+}
+
+func NewGame(width, height int, xmlData []byte) (*Game, error) {
+	game := &Game{}
+
+	game.elementIdCounter = 0
+	game.Width = width
+	game.Height = height
+	game.ElementData = map[int]ElementData{}
+	game.ElementTypes = map[string]int{}
+
+	var commands xmlhandler.XMLElementList
+	xml.Unmarshal(xmlData, &commands)
+
+	for i := range commands.Elements {
+		command := commands.Elements[i]
+		display := command.Display
+		if display == nil {
+			display = &xmlhandler.XMLDisplay{}
+		}
+
+		col := display.Color
+		if col == "" {
+			col = "white"
+		}
+
+		name := display.Name
+		if name == "" {
+			name = command.Name
+		}
+
+		if err := game.DefineElement(command.Name, col, name, command.IsDefault); err != nil {
+			return nil, err
+		}
+	}
+
+	return game, nil
 }
 
 func (game *Game) Layout(outsizeWidth, outsizeHeight int) (int, int) {

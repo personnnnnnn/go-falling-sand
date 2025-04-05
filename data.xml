@@ -5,4 +5,10 @@
       <name>Sand</name>
     </display>
   </element>
+  <element name="air" default="true">
+    <display>
+      <color>white</color>
+      <name>Air</name>
+    </display>
+  </element>
 </elements>
