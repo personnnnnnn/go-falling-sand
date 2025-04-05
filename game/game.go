@@ -10,6 +10,7 @@ import (
 	"go-falling-sand/xml_handler"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var Dimensions = struct {
@@ -73,6 +74,7 @@ type Game struct {
 	Width, Height           int
 	ChunkWidth, ChunkHeight int
 	Chunks                  []Chunk
+	CellSize                float32
 }
 
 type Chunk struct {
@@ -119,7 +121,7 @@ func (game *Game) WorldArea() int {
 	return game.Width * game.Height
 }
 
-func NewGame(width, height int, chunkWidth, chunkHeight int, xmlData []byte) (*Game, error) {
+func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, xmlData []byte) (*Game, error) {
 	game := &Game{}
 
 	game.elementIdCounter = 0
@@ -127,6 +129,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, xmlData []byte) (*G
 	game.Height = height
 	game.ChunkWidth = chunkWidth
 	game.ChunkHeight = chunkHeight
+	game.CellSize = cellSize
 	game.ElementData = map[int]ElementData{}
 	game.ElementTypes = map[string]int{}
 
@@ -201,9 +204,34 @@ func (game *Game) Draw(screen *ebiten.Image) {
 
 	screen.Fill(color.Black)
 
+	for x := 0; x < game.Width; x++ {
+		for y := 0; y < game.Height; y++ {
+			i := game.CalculateChunkIndex(x, y)
+			chunk := game.Chunks[i]
+			chunk.Draw(screen)
+		}
+	}
+
+}
+
+func (chunk *Chunk) Draw(screen *ebiten.Image) {
+	for x := 0; x < chunk.Game.ChunkWidth; x++ {
+		for y := 0; y < chunk.Game.ChunkHeight; y++ {
+			i := chunk.Game.CalculateCellIndex(x, y)
+			cell := chunk.Cells[i]
+			vector.DrawFilledRect(
+				screen,
+				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize,
+				float32(y+chunk.Y*chunk.Game.ChunkHeight)*chunk.Game.CellSize,
+				chunk.Game.CellSize,
+				chunk.Game.CellSize,
+				chunk.Game.ElementData[cell.Type].Color,
+				false,
+			)
+		}
+	}
 }
 
 func (game *Game) Update() error {
-
 	return nil
 }
