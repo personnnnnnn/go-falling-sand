@@ -106,6 +106,19 @@ func (g *Game) TotalHeight() int {
 	return g.Height * g.ChunkHeight
 }
 
+type BasicBehavior struct{}
+
+func (BasicBehavior) Create(cell *Cell) error {
+	return nil
+}
+
+func (BasicBehavior) Update(cell *Cell) error {
+	if cell.Type != cell.Game().elementIdCounter-1 {
+		cell.Type++
+	}
+	return nil
+}
+
 func (g *Game) DefineElement(elementTypeName string, colorString string, name string, role string, selectable bool) error {
 	index := g.elementIdCounter
 	g.elementIdCounter++
@@ -126,6 +139,7 @@ func (g *Game) DefineElement(elementTypeName string, colorString string, name st
 		ElementTypeName: elementTypeName,
 		ElementTypeID:   index,
 		Role:            role,
+		Kind:            BasicBehavior{},
 	}
 
 	if role == ROLE_AIR {
@@ -307,26 +321,34 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 
 			cell := &chunk.Cells[i]
 
-			col := chunk.Game.ElementData[cell.Type].Color
-			if c, err := chunk.Game.GetHoveredCell(); err == nil && c == cell {
-				col = color.RGBA{255, 0, 0, 255}
-			}
-
 			vector.DrawFilledRect(
 				screen,
 				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize+chunk.Game.SideBarLength,
 				float32(y+chunk.Y*chunk.Game.ChunkHeight)*chunk.Game.CellSize,
 				chunk.Game.CellSize,
 				chunk.Game.CellSize,
-				col,
+				chunk.Game.ElementData[cell.Type].Color,
 				false,
 			)
 		}
 	}
 }
 
+func (game *Game) UpdateChunks() error {
+	for i := range game.Chunks {
+		chunk := game.Chunks[i]
+		if err := chunk.Update(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (game *Game) Update() error {
 	if err := game.ElementScrollBar.Update(); err != nil {
+		return err
+	}
+	if err := game.UpdateChunks(); err != nil {
 		return err
 	}
 	if cell, err := game.GetHoveredCell(); err == nil && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && game.SelectedElement != -1 {
@@ -359,6 +381,16 @@ func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {
 	}
 }
 
+func (chunk *Chunk) Update() error {
+	for i := range chunk.Cells {
+		cell := &chunk.Cells[i]
+		if err := cell.Update(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (game *Game) GetHoveredCell() (*Cell, error) {
 	mx, my := ebiten.CursorPosition()
 	x := float32(mx)
@@ -377,6 +409,10 @@ func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
 		return nil, fmt.Errorf("there is no cell in chunk at local position %v %v", cellX, cellY)
 	}
 	return &chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
+}
+
+func (cell *Cell) Update() error {
+	return cell.Game().ElementData[cell.Type].Kind.Update(cell)
 }
 
 func (cell *Cell) GetCell(relativeX, relativeY int) (*Cell, error) {
