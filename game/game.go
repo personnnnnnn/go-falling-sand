@@ -226,8 +226,8 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 	}
 
 	game.Chunks = make([]Chunk, game.WorldArea())
-	for x := 0; x < game.Width; x++ {
-		for y := 0; y < game.Height; y++ {
+	for x := range game.Width {
+		for y := range game.Height {
 			i := game.CalculateChunkIndex(x, y)
 			game.Chunks[i] = NewChunk(game, x, y)
 		}
@@ -246,8 +246,8 @@ func NewChunk(game *Game, x, y int) Chunk {
 
 	chunk.Cells = make([]Cell, game.ChunkArea())
 
-	for x := 0; x < game.ChunkWidth; x++ {
-		for y := 0; y < game.ChunkHeight; y++ {
+	for x := range game.ChunkWidth {
+		for y := range game.ChunkHeight {
 
 			i := game.CalculateCellIndex(x, y)
 
@@ -288,8 +288,8 @@ func (game *Game) Layout(outsizeWidth, outsizeHeight int) (int, int) {
 func (game *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.Gray{100})
 
-	for x := 0; x < game.Width; x++ {
-		for y := 0; y < game.Height; y++ {
+	for x := range game.Width {
+		for y := range game.Height {
 			i := game.CalculateChunkIndex(x, y)
 
 			chunk := game.Chunks[i]
@@ -301,8 +301,8 @@ func (game *Game) Draw(screen *ebiten.Image) {
 }
 
 func (chunk *Chunk) Draw(screen *ebiten.Image) {
-	for x := 0; x < chunk.Game.ChunkWidth; x++ {
-		for y := 0; y < chunk.Game.ChunkHeight; y++ {
+	for x := range chunk.Game.ChunkWidth {
+		for y := range chunk.Game.ChunkHeight {
 			i := chunk.Game.CalculateCellIndex(x, y)
 
 			cell := chunk.Cells[i]
