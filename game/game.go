@@ -92,6 +92,12 @@ type Chunk struct {
 	Cells []Cell
 }
 
+type Cell struct {
+	X, Y  int
+	Type  int
+	Chunk *Chunk
+}
+
 func (g *Game) TotalWidth() int {
 	return g.Width * g.ChunkWidth
 }
@@ -155,12 +161,6 @@ func (g *Game) DefineElement(elementTypeName string, colorString string, name st
 	}
 
 	return nil
-}
-
-type Cell struct {
-	X, Y  int
-	Type  int
-	Chunk *Chunk
 }
 
 func (game *Game) ChunkArea() int {
