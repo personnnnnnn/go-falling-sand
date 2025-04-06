@@ -106,20 +106,7 @@ func (g *Game) TotalHeight() int {
 	return g.Height * g.ChunkHeight
 }
 
-type BasicBehavior struct{}
-
-func (BasicBehavior) Create(cell *Cell) error {
-	return nil
-}
-
-func (BasicBehavior) Update(cell *Cell) error {
-	if cell.Type != cell.Game().elementIdCounter-1 {
-		cell.Type++
-	}
-	return nil
-}
-
-func (g *Game) DefineElement(elementTypeName string, colorString string, name string, role string, selectable bool) error {
+func (g *Game) DefineElement(definition xmlhandler.XMLElementDefinition, elementTypeName string, colorString string, name string, role string, selectable bool) error {
 	index := g.elementIdCounter
 	g.elementIdCounter++
 
@@ -132,6 +119,12 @@ func (g *Game) DefineElement(elementTypeName string, colorString string, name st
 		role = ROLE_NONE
 	}
 
+	var kind ElementKind = nil
+
+	if definition.MovableSolid != nil {
+		kind = MovableSolid{}
+	}
+
 	g.ElementTypes[elementTypeName] = index
 	g.ElementData[index] = ElementData{
 		Color:           col,
@@ -139,7 +132,7 @@ func (g *Game) DefineElement(elementTypeName string, colorString string, name st
 		ElementTypeName: elementTypeName,
 		ElementTypeID:   index,
 		Role:            role,
-		Kind:            BasicBehavior{},
+		Kind:            kind,
 	}
 
 	if role == ROLE_AIR {
@@ -234,7 +227,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 			name = command.Name
 		}
 
-		if err := game.DefineElement(command.Name, col, name, command.Role, display.Selectable); err != nil {
+		if err := game.DefineElement(command, command.Name, col, name, command.Role, display.Selectable); err != nil {
 			return nil, err
 		}
 	}
@@ -412,7 +405,11 @@ func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
 }
 
 func (cell *Cell) Update() error {
-	return cell.Game().ElementData[cell.Type].Kind.Update(cell)
+	kind := cell.Game().ElementData[cell.Type].Kind
+	if kind == nil {
+		return nil
+	}
+	return kind.Update(cell)
 }
 
 func (cell *Cell) GetCell(relativeX, relativeY int) (*Cell, error) {
@@ -429,4 +426,9 @@ func (cell *Cell) WorldX() int {
 
 func (cell *Cell) WorldY() int {
 	return cell.Y + cell.Chunk.Y*cell.Game().ChunkHeight
+}
+
+func (cell *Cell) Data() *ElementData {
+	data := cell.Game().ElementData[cell.Type]
+	return &data
 }

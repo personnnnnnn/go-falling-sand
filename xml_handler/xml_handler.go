@@ -12,6 +12,10 @@ type XMLElementDefinition struct {
 	Name    string      `xml:"name,attr"`
 	Role    string      `xml:"role,attr"`
 	Display *XMLDisplay `xml:"display"`
+
+	Air            *XMLAirData
+	ImmovableSolid *XMLImmovableSolidData
+	MovableSolid   *XMLMovableSolidData
 }
 
 type XMLDisplay struct {
@@ -19,10 +23,6 @@ type XMLDisplay struct {
 	Name       string   `xml:"name"`
 	Color      string   `xml:"color"`
 	Selectable bool     `xml:"selectable"`
-
-	Air            *XMLAirData
-	ImmovableSolid *XMLImmovableSolidData
-	MovableSolid   *XMLMovableSolidData
 }
 
 type XMLAirData struct {
