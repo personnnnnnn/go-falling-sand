@@ -8,10 +8,10 @@ type XMLElementList struct {
 }
 
 type XMLElementDefinition struct {
-	XMLName   xml.Name    `xml:"element"`
-	Name      string      `xml:"name,attr"`
-	IsDefault bool        `xml:"default,attr"`
-	Display   *XMLDisplay `xml:"display"`
+	XMLName xml.Name    `xml:"element"`
+	Name    string      `xml:"name,attr"`
+	Role    string      `xml:"role,attr"`
+	Display *XMLDisplay `xml:"display"`
 }
 
 type XMLDisplay struct {

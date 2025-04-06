@@ -58,17 +58,22 @@ func StringToColor(s string) (color.Color, error) {
 	return color.Black, fmt.Errorf("invalid color name: '%v'", s)
 }
 
+const ROLE_WALL = "wall"
+const ROLE_AIR = "air"
+const ROLE_NONE = "none"
+
 type ElementData struct {
 	Color           color.Color
 	Name            string
 	ElementTypeName string
 	ElementTypeID   int
-	IsDefault       bool
+	Role            string
 }
 
 type Game struct {
 	elementIdCounter        int
-	DefaultElement          int
+	AirElement              int
+	WallElement             int
 	ElementTypes            map[string]int
 	ElementData             map[int]ElementData
 	Width, Height           int
@@ -83,10 +88,22 @@ type Chunk struct {
 	Cells []Cell
 }
 
-func (g *Game) DefineElement(elementTypeName string, color string, name string, isDefault bool) error {
+func (g *Game) TotalWidth() int {
+	return g.Width * g.ChunkWidth
+}
+
+func (g *Game) TotalHeight() int {
+	return g.Height * g.ChunkHeight
+}
+
+func (g *Game) DefineElement(elementTypeName string, color string, name string, role string) error {
 	var col, colErr = StringToColor(color)
 	if colErr != nil {
 		return colErr
+	}
+
+	if role != ROLE_AIR && role != ROLE_WALL && role != ROLE_NONE {
+		role = ROLE_NONE
 	}
 
 	g.ElementTypes[elementTypeName] = g.elementIdCounter
@@ -95,11 +112,13 @@ func (g *Game) DefineElement(elementTypeName string, color string, name string, 
 		Name:            name,
 		ElementTypeName: elementTypeName,
 		ElementTypeID:   g.elementIdCounter,
-		IsDefault:       isDefault,
+		Role:            role,
 	}
 
-	if isDefault {
-		g.DefaultElement = g.elementIdCounter
+	if role == ROLE_AIR {
+		g.AirElement = g.elementIdCounter
+	} else if role == ROLE_WALL {
+		g.WallElement = g.elementIdCounter
 	}
 
 	g.elementIdCounter++
@@ -157,7 +176,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 			name = command.Name
 		}
 
-		if err := game.DefineElement(command.Name, col, name, command.IsDefault); err != nil {
+		if err := game.DefineElement(command.Name, col, name, command.Role); err != nil {
 			return nil, err
 		}
 	}
@@ -189,9 +208,20 @@ func NewChunk(game *Game, x, y int) Chunk {
 
 			i := game.CalculateCellIndex(x, y)
 
+			var cellType int
+
+			worldX := x + chunk.X*game.ChunkWidth
+			worldY := y + chunk.Y*game.ChunkHeight
+
+			if worldX == 0 || worldY == 0 || worldX == game.TotalWidth()-1 || worldY == game.TotalHeight()-1 {
+				cellType = game.WallElement
+			} else {
+				cellType = game.AirElement
+			}
+
 			chunk.Cells[i] = Cell{
 				X: x, Y: y,
-				Type:  game.DefaultElement,
+				Type:  cellType,
 				Chunk: &chunk,
 			}
 		}

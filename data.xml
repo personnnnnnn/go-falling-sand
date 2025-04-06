@@ -1,14 +1,20 @@
 <elements>
+  <element name="air" role="air">
+    <display>
+      <color>white</color>
+      <name>Air</name>
+    </display>
+  </element>
+  <element name="wall" role="wall">
+    <display>
+      <color>black</color>
+      <name>Wall</name>
+    </display>
+  </element>
   <element name="sand">
     <display>
       <color>yellow</color>
       <name>Sand</name>
-    </display>
-  </element>
-  <element name="air" default="true">
-    <display>
-      <color>white</color>
-      <name>Air</name>
     </display>
   </element>
 </elements>
