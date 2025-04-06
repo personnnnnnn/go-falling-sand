@@ -3,18 +3,21 @@
     <display>
       <color>white</color>
       <name>Air</name>
+      <selectable>true</selectable>
     </display>
   </element>
   <element name="wall" role="wall">
     <display>
       <color>black</color>
       <name>Wall</name>
+      <selectable>true</selectable>
     </display>
   </element>
   <element name="sand">
     <display>
       <color>yellow</color>
       <name>Sand</name>
+      <selectable>true</selectable>
     </display>
   </element>
 </elements>

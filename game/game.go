@@ -15,7 +15,7 @@ import (
 
 var Dimensions = struct {
 	Width, Height, ScreenWidth, ScreenHeight int
-}{400, 400, 600, 600}
+}{600, 400, 900, 600}
 
 func HexStringToColor(s string) (color.Color, error) {
 	if len(s) != 7 || s[0] != '#' {
@@ -72,14 +72,17 @@ type ElementData struct {
 
 type Game struct {
 	elementIdCounter        int
+	SideBarLength           float32
 	AirElement              int
 	WallElement             int
+	SelectedElement         int
 	ElementTypes            map[string]int
 	ElementData             map[int]ElementData
 	Width, Height           int
 	ChunkWidth, ChunkHeight int
 	Chunks                  []Chunk
 	CellSize                float32
+	ElementScrollBar        ScrollBar
 }
 
 type Chunk struct {
@@ -96,8 +99,11 @@ func (g *Game) TotalHeight() int {
 	return g.Height * g.ChunkHeight
 }
 
-func (g *Game) DefineElement(elementTypeName string, color string, name string, role string) error {
-	var col, colErr = StringToColor(color)
+func (g *Game) DefineElement(elementTypeName string, colorString string, name string, role string, selectable bool) error {
+	index := g.elementIdCounter
+	g.elementIdCounter++
+
+	var col, colErr = StringToColor(colorString)
 	if colErr != nil {
 		return colErr
 	}
@@ -106,22 +112,47 @@ func (g *Game) DefineElement(elementTypeName string, color string, name string, 
 		role = ROLE_NONE
 	}
 
-	g.ElementTypes[elementTypeName] = g.elementIdCounter
-	g.ElementData[g.elementIdCounter] = ElementData{
+	g.ElementTypes[elementTypeName] = index
+	g.ElementData[index] = ElementData{
 		Color:           col,
 		Name:            name,
 		ElementTypeName: elementTypeName,
-		ElementTypeID:   g.elementIdCounter,
+		ElementTypeID:   index,
 		Role:            role,
 	}
 
 	if role == ROLE_AIR {
-		g.AirElement = g.elementIdCounter
+		g.AirElement = index
 	} else if role == ROLE_WALL {
-		g.WallElement = g.elementIdCounter
+		g.WallElement = index
 	}
 
-	g.elementIdCounter++
+	if selectable {
+		g.ElementScrollBar.AddItem(ScrollBarItem{
+			Box: &ScrollBarBox{
+				Border:     color.White,
+				Inner:      col,
+				BorderSize: 3,
+			},
+			InnerPadding: 3,
+			TextColor:    color.White,
+			Text:         name,
+			Clicked: func(_ *ScrollBarItem, _ int) error {
+				fmt.Println("Click!")
+				g.SelectedElement = index
+				return nil
+			},
+			BeforeDraw: func(item *ScrollBarItem, i int) {
+				if g.SelectedElement == index {
+					item.Background = color.RGBA{200, 200, 200, 255}
+				} else if g.ElementScrollBar.GetHovered() == i {
+					item.Background = color.RGBA{150, 150, 150, 255}
+				} else {
+					item.Background = color.Transparent
+				}
+			},
+		})
+	}
 
 	return nil
 }
@@ -140,23 +171,36 @@ func (game *Game) WorldArea() int {
 	return game.Width * game.Height
 }
 
-func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, xmlData []byte) (*Game, error) {
+func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, sideBarLength float32, xmlData []byte) (*Game, error) {
 	game := &Game{}
 
 	game.elementIdCounter = 0
+
+	game.SelectedElement = -1 // No item selected
 
 	game.Width = width
 	game.Height = height
 
 	game.ChunkWidth = chunkWidth
 	game.ChunkHeight = chunkHeight
+
 	game.CellSize = cellSize
+	game.SideBarLength = sideBarLength
 
 	game.ElementData = map[int]ElementData{}
 	game.ElementTypes = map[string]int{}
 
 	var commands xmlhandler.XMLElementList
 	xml.Unmarshal(xmlData, &commands)
+
+	game.ElementScrollBar = NewScrollBar(
+		0,
+		sideBarLength,
+		30,
+		10,
+		color.RGBA{100, 100, 100, 255},
+		len(commands.Elements),
+	)
 
 	for i := range commands.Elements {
 		command := commands.Elements[i]
@@ -176,7 +220,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 			name = command.Name
 		}
 
-		if err := game.DefineElement(command.Name, col, name, command.Role); err != nil {
+		if err := game.DefineElement(command.Name, col, name, command.Role, display.Selectable); err != nil {
 			return nil, err
 		}
 	}
@@ -185,7 +229,6 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, x
 	for x := 0; x < game.Width; x++ {
 		for y := 0; y < game.Height; y++ {
 			i := game.CalculateChunkIndex(x, y)
-
 			game.Chunks[i] = NewChunk(game, x, y)
 		}
 	}
@@ -243,7 +286,7 @@ func (game *Game) Layout(outsizeWidth, outsizeHeight int) (int, int) {
 }
 
 func (game *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.Black)
+	screen.Fill(color.Gray{100})
 
 	for x := 0; x < game.Width; x++ {
 		for y := 0; y < game.Height; y++ {
@@ -253,6 +296,8 @@ func (game *Game) Draw(screen *ebiten.Image) {
 			chunk.Draw(screen)
 		}
 	}
+
+	game.ElementScrollBar.Draw(screen)
 }
 
 func (chunk *Chunk) Draw(screen *ebiten.Image) {
@@ -264,7 +309,7 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 
 			vector.DrawFilledRect(
 				screen,
-				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize,
+				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize+chunk.Game.SideBarLength,
 				float32(y+chunk.Y*chunk.Game.ChunkHeight)*chunk.Game.CellSize,
 				chunk.Game.CellSize,
 				chunk.Game.CellSize,
@@ -276,5 +321,8 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 }
 
 func (game *Game) Update() error {
+	if err := game.ElementScrollBar.Update(); err != nil {
+		return err
+	}
 	return nil
 }

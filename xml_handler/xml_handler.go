@@ -15,7 +15,8 @@ type XMLElementDefinition struct {
 }
 
 type XMLDisplay struct {
-	XMLName xml.Name `xml:"display"`
-	Name    string   `xml:"name"`
-	Color   string   `xml:"color"`
+	XMLName    xml.Name `xml:"display"`
+	Name       string   `xml:"name"`
+	Color      string   `xml:"color"`
+	Selectable bool     `xml:"selectable"`
 }
