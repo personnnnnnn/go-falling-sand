@@ -19,4 +19,20 @@ type XMLDisplay struct {
 	Name       string   `xml:"name"`
 	Color      string   `xml:"color"`
 	Selectable bool     `xml:"selectable"`
+
+	Air            *XMLAirData
+	ImmovableSolid *XMLImmovableSolidData
+	MovableSolid   *XMLMovableSolidData
+}
+
+type XMLAirData struct {
+	XMLName xml.Name `xml:"air"`
+}
+
+type XMLImmovableSolidData struct {
+	XMLName xml.Name `xml:"immovable-solid"`
+}
+
+type XMLMovableSolidData struct {
+	XMLName xml.Name `xml:"movable-solid"`
 }

@@ -1,19 +1,24 @@
 <elements>
   <element name="air" role="air">
+    <air />
     <display>
       <color>white</color>
       <name>Air</name>
       <selectable>true</selectable>
     </display>
   </element>
+
   <element name="wall" role="wall">
+    <immovable-solid />
     <display>
       <color>black</color>
       <name>Wall</name>
       <selectable>true</selectable>
     </display>
   </element>
+
   <element name="sand">
+    <movable-solid />
     <display>
       <color>yellow</color>
       <name>Sand</name>

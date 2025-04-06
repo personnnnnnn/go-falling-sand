@@ -68,6 +68,7 @@ type ElementData struct {
 	ElementTypeName string
 	ElementTypeID   int
 	Role            string
+	Kind            ElementKind
 }
 
 type Game struct {
@@ -292,7 +293,7 @@ func (game *Game) Draw(screen *ebiten.Image) {
 		for y := range game.Height {
 			i := game.CalculateChunkIndex(x, y)
 
-			chunk := game.Chunks[i]
+			chunk := &game.Chunks[i]
 			chunk.Draw(screen)
 		}
 	}
@@ -305,7 +306,7 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 		for y := range chunk.Game.ChunkHeight {
 			i := chunk.Game.CalculateCellIndex(x, y)
 
-			cell := chunk.Cells[i]
+			cell := &chunk.Cells[i]
 
 			vector.DrawFilledRect(
 				screen,
@@ -325,4 +326,51 @@ func (game *Game) Update() error {
 		return err
 	}
 	return nil
+}
+
+func (game *Game) GetChunk(chunkX, chunkY int) (*Chunk, error) {
+	if chunkX < 0 || chunkY < 0 || chunkX >= game.Width || chunkY >= game.Height {
+		return nil, fmt.Errorf("there is no chunk at chunk position %v %v", chunkX, chunkY)
+	}
+	return &game.Chunks[game.CalculateChunkIndex(chunkX, chunkY)], nil
+}
+
+func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {
+	chunkX := worldX / game.ChunkWidth
+	chunkY := worldY / game.ChunkHeight
+
+	if chunk, err := game.GetChunk(chunkX, chunkY); err != nil {
+		return nil, fmt.Errorf("there is no cell at world position %v %v", worldX, worldY)
+	} else {
+		cellX := worldX % game.ChunkWidth
+		cellY := worldY % game.ChunkHeight
+		if cell, err := chunk.GetCell(cellX, cellY); err != nil {
+			return nil, fmt.Errorf("there is no cell at world position %v %v", worldX, worldY)
+		} else {
+			return cell, nil
+		}
+	}
+}
+
+func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
+	if cellX < 0 || cellY < 0 || cellX >= chunk.Game.Width || cellY >= chunk.Game.Height {
+		return nil, fmt.Errorf("there is no cell in chunk at local position %v %v", cellX, cellY)
+	}
+	return &chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
+}
+
+func (cell *Cell) GetCell(relativeX, relativeY int) (*Cell, error) {
+	return cell.Game().GetCell(cell.WorldX()+relativeX, cell.WorldY()+relativeY)
+}
+
+func (cell *Cell) Game() *Game {
+	return cell.Chunk.Game
+}
+
+func (cell *Cell) WorldX() int {
+	return cell.X + cell.Chunk.X*cell.Game().ChunkWidth
+}
+
+func (cell *Cell) WorldY() int {
+	return cell.Y + cell.Chunk.Y*cell.Game().ChunkHeight
 }

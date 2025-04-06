@@ -171,7 +171,7 @@ func (scrollBar *ScrollBar) Draw(screen *ebiten.Image) {
 		drawOptions.ColorScale.SetB(float32(b))
 		drawOptions.ColorScale.SetA(float32(a))
 
-		drawOptions.LayoutOptions.LineSpacing = 13 + 3
+		drawOptions.LayoutOptions.LineSpacing = 16
 
 		text.Draw(
 			screen,
