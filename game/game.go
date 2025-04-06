@@ -139,7 +139,6 @@ func (g *Game) DefineElement(elementTypeName string, colorString string, name st
 			TextColor:    color.White,
 			Text:         name,
 			Clicked: func(_ *ScrollBarItem, _ int) error {
-				fmt.Println("Click!")
 				g.SelectedElement = index
 				return nil
 			},
@@ -308,13 +307,18 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 
 			cell := &chunk.Cells[i]
 
+			col := chunk.Game.ElementData[cell.Type].Color
+			if c, err := chunk.Game.GetHoveredCell(); err == nil && c == cell {
+				col = color.RGBA{255, 0, 0, 255}
+			}
+
 			vector.DrawFilledRect(
 				screen,
 				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize+chunk.Game.SideBarLength,
 				float32(y+chunk.Y*chunk.Game.ChunkHeight)*chunk.Game.CellSize,
 				chunk.Game.CellSize,
 				chunk.Game.CellSize,
-				chunk.Game.ElementData[cell.Type].Color,
+				col,
 				false,
 			)
 		}
@@ -324,6 +328,9 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 func (game *Game) Update() error {
 	if err := game.ElementScrollBar.Update(); err != nil {
 		return err
+	}
+	if cell, err := game.GetHoveredCell(); err == nil && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && game.SelectedElement != -1 {
+		cell.Type = game.SelectedElement
 	}
 	return nil
 }
@@ -352,8 +359,21 @@ func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {
 	}
 }
 
+func (game *Game) GetHoveredCell() (*Cell, error) {
+	mx, my := ebiten.CursorPosition()
+	x := float32(mx)
+	y := float32(my)
+	if x < game.SideBarLength {
+		return nil, fmt.Errorf("%v %v is not on board", x, y)
+	}
+	x -= game.SideBarLength
+	xIndex := int(x / game.CellSize)
+	yIndex := int(y / game.CellSize)
+	return game.GetCell(xIndex, yIndex)
+}
+
 func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
-	if cellX < 0 || cellY < 0 || cellX >= chunk.Game.Width || cellY >= chunk.Game.Height {
+	if cellX < 0 || cellY < 0 || cellX >= chunk.Game.ChunkWidth || cellY >= chunk.Game.ChunkHeight {
 		return nil, fmt.Errorf("there is no cell in chunk at local position %v %v", cellX, cellY)
 	}
 	return &chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
