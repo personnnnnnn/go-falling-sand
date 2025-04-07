@@ -2,6 +2,7 @@ package game
 
 type Cell struct {
 	X, Y  int
+	Order int
 	Type  int
 	Chunk *Chunk
 	Data  *[]int
@@ -31,7 +32,10 @@ func (cell *Cell) WorldY() int {
 	return cell.Y + cell.Chunk.Y*cell.Game().ChunkHeight
 }
 
-func (cell *Cell) ElementData() *ElementData {
-	data := cell.Game().ElementData[cell.Type]
-	return &data
+func (cell *Cell) ElementData() ElementData {
+	return cell.Game().ElementData[cell.Type]
+}
+
+func (cell *Cell) Index() int {
+	return cell.Game().CalculateCellIndex(cell.X, cell.Y)
 }

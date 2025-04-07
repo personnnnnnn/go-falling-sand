@@ -38,8 +38,8 @@ type Game struct {
 	ElementData             map[int]ElementData
 	Width, Height           int
 	ChunkWidth, ChunkHeight int
-	Chunks                  []*Chunk
-	ChunkOrder              []*Chunk
+	Chunks                  []Chunk
+	ChunkOrder              []int
 	CellSize                float32
 	ElementScrollBar        ScrollBar
 }
@@ -180,15 +180,16 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 		}
 	}
 
-	game.Chunks = make([]*Chunk, game.WorldArea())
+	game.Chunks = make([]Chunk, game.WorldArea())
+	game.ChunkOrder = make([]int, game.WorldArea())
 	for x := range game.Width {
 		for y := range game.Height {
 			i := game.CalculateChunkIndex(x, y)
-			game.Chunks[i] = NewChunk(game, x, y)
+			game.ChunkOrder[i] = i
+			chunk := NewChunk(game, x, y)
+			game.Chunks[i] = chunk
 		}
 	}
-
-	game.ChunkOrder = game.Chunks
 
 	return game, nil
 }
@@ -223,7 +224,8 @@ func (game *Game) Draw(screen *ebiten.Image) {
 func (game *Game) UpdateChunks() error {
 	util.Shuffle(game.ChunkOrder)
 	for i := range game.ChunkOrder {
-		chunk := game.ChunkOrder[i]
+		i = game.ChunkOrder[i]
+		chunk := game.Chunks[i]
 		if err := chunk.Update(); err != nil {
 			return err
 		}
@@ -248,7 +250,7 @@ func (game *Game) GetChunk(chunkX, chunkY int) (*Chunk, error) {
 	if chunkX < 0 || chunkY < 0 || chunkX >= game.Width || chunkY >= game.Height {
 		return nil, fmt.Errorf("there is no chunk at chunk position %v %v", chunkX, chunkY)
 	}
-	return game.Chunks[game.CalculateChunkIndex(chunkX, chunkY)], nil
+	return &game.Chunks[game.CalculateChunkIndex(chunkX, chunkY)], nil
 }
 
 func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {

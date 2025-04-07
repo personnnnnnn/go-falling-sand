@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"go-falling-sand/util"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -10,11 +11,11 @@ import (
 type Chunk struct {
 	X, Y      int
 	Game      *Game
-	Cells     []*Cell
-	CellOrder []*Cell
+	Cells     []Cell
+	CellOrder []int
 }
 
-func NewChunk(game *Game, x, y int) *Chunk {
+func NewChunk(game *Game, x, y int) Chunk {
 	chunk := Chunk{}
 
 	chunk.Game = game
@@ -22,12 +23,15 @@ func NewChunk(game *Game, x, y int) *Chunk {
 	chunk.X = x
 	chunk.Y = y
 
-	chunk.Cells = make([]*Cell, game.ChunkArea())
+	chunk.Cells = make([]Cell, game.ChunkArea())
+	chunk.CellOrder = make([]int, game.ChunkArea())
 
 	for x := range game.ChunkWidth {
 		for y := range game.ChunkHeight {
 
 			i := game.CalculateCellIndex(x, y)
+
+			chunk.CellOrder[i] = i
 
 			var cellType int
 
@@ -40,29 +44,32 @@ func NewChunk(game *Game, x, y int) *Chunk {
 				cellType = game.AirElement
 			}
 
-			chunk.Cells[i] = &Cell{
+			cell := Cell{
 				X: x, Y: y,
 				Type:  cellType,
 				Chunk: &chunk,
+				Order: i,
 			}
+
+			chunk.Cells[i] = cell
 		}
 	}
 
-	chunk.CellOrder = chunk.Cells
-
-	return &chunk
+	return chunk
 }
 
 func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
 	if cellX < 0 || cellY < 0 || cellX >= chunk.Game.ChunkWidth || cellY >= chunk.Game.ChunkHeight {
 		return nil, fmt.Errorf("there is no cell in chunk at local position %v %v", cellX, cellY)
 	}
-	return chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
+	return &chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
 }
 
 func (chunk *Chunk) Update() error {
+	util.Shuffle(chunk.CellOrder)
 	for i := range chunk.CellOrder {
-		cell := chunk.CellOrder[i]
+		i = chunk.CellOrder[i]
+		cell := &chunk.Cells[i]
 		if err := cell.Update(); err != nil {
 			return err
 		}
