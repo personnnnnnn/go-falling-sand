@@ -2,62 +2,18 @@ package game
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"image/color"
-	"strconv"
 
 	"go-falling-sand/util"
 	"go-falling-sand/xml_handler"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var Dimensions = struct {
 	Width, Height, ScreenWidth, ScreenHeight int
 }{600, 400, 900, 600}
-
-func HexStringToColor(s string) (color.Color, error) {
-	if len(s) != 7 || s[0] != '#' {
-		return color.Black, errors.New("invalid hex color")
-	}
-
-	rStr := s[1:3]
-	gStr := s[3:5]
-	bStr := s[5:7]
-
-	r, err := strconv.ParseUint(rStr, 16, 8)
-	if err != nil {
-		return color.Black, fmt.Errorf("invalid red component: %v", err)
-	}
-	g, err := strconv.ParseUint(gStr, 16, 8)
-	if err != nil {
-		return color.Black, fmt.Errorf("invalid green component: %v", err)
-	}
-	b, err := strconv.ParseUint(bStr, 16, 8)
-	if err != nil {
-		return color.Black, fmt.Errorf("invalid blue component: %v", err)
-	}
-
-	return color.RGBA{uint8(r), uint8(g), uint8(b), 255}, nil
-}
-
-func StringToColor(s string) (color.Color, error) {
-	if len(s) == 0 {
-		return color.Black, errors.New("can't give an empty string")
-	}
-
-	if s[0] == '#' {
-		return HexStringToColor(s)
-	}
-
-	if col, ok := ColorMap[s]; ok {
-		return col, nil
-	}
-
-	return color.Black, fmt.Errorf("invalid color name: '%v'", s)
-}
 
 const ROLE_WALL = "wall"
 const ROLE_AIR = "air"
@@ -86,20 +42,6 @@ type Game struct {
 	ChunkOrder              []*Chunk
 	CellSize                float32
 	ElementScrollBar        ScrollBar
-}
-
-type Chunk struct {
-	X, Y      int
-	Game      *Game
-	Cells     []*Cell
-	CellOrder []*Cell
-}
-
-type Cell struct {
-	X, Y  int
-	Type  int
-	Chunk *Chunk
-	Data  *[]int
 }
 
 func (g *Game) TotalWidth() int {
@@ -251,45 +193,6 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 	return game, nil
 }
 
-func NewChunk(game *Game, x, y int) *Chunk {
-	chunk := Chunk{}
-
-	chunk.Game = game
-
-	chunk.X = x
-	chunk.Y = y
-
-	chunk.Cells = make([]*Cell, game.ChunkArea())
-
-	for x := range game.ChunkWidth {
-		for y := range game.ChunkHeight {
-
-			i := game.CalculateCellIndex(x, y)
-
-			var cellType int
-
-			worldX := x + chunk.X*game.ChunkWidth
-			worldY := y + chunk.Y*game.ChunkHeight
-
-			if worldX == 0 || worldY == 0 || worldX == game.TotalWidth()-1 || worldY == game.TotalHeight()-1 {
-				cellType = game.WallElement
-			} else {
-				cellType = game.AirElement
-			}
-
-			chunk.Cells[i] = &Cell{
-				X: x, Y: y,
-				Type:  cellType,
-				Chunk: &chunk,
-			}
-		}
-	}
-
-	chunk.CellOrder = chunk.Cells
-
-	return &chunk
-}
-
 func (g *Game) CalculateChunkIndex(x, y int) int {
 	return x + y*g.Width
 }
@@ -315,26 +218,6 @@ func (game *Game) Draw(screen *ebiten.Image) {
 	}
 
 	game.ElementScrollBar.Draw(screen)
-}
-
-func (chunk *Chunk) Draw(screen *ebiten.Image) {
-	for x := range chunk.Game.ChunkWidth {
-		for y := range chunk.Game.ChunkHeight {
-			i := chunk.Game.CalculateCellIndex(x, y)
-
-			cell := chunk.Cells[i]
-
-			vector.DrawFilledRect(
-				screen,
-				float32(x+chunk.X*chunk.Game.ChunkWidth)*chunk.Game.CellSize+chunk.Game.SideBarLength,
-				float32(y+chunk.Y*chunk.Game.ChunkHeight)*chunk.Game.CellSize,
-				chunk.Game.CellSize,
-				chunk.Game.CellSize,
-				chunk.Game.ElementData[cell.Type].Color,
-				false,
-			)
-		}
-	}
 }
 
 func (game *Game) UpdateChunks() error {
@@ -385,16 +268,6 @@ func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {
 	}
 }
 
-func (chunk *Chunk) Update() error {
-	for i := range chunk.CellOrder {
-		cell := chunk.CellOrder[i]
-		if err := cell.Update(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (game *Game) GetHoveredCell() (*Cell, error) {
 	mx, my := ebiten.CursorPosition()
 	x := float32(mx)
@@ -406,40 +279,4 @@ func (game *Game) GetHoveredCell() (*Cell, error) {
 	xIndex := int(x / game.CellSize)
 	yIndex := int(y / game.CellSize)
 	return game.GetCell(xIndex, yIndex)
-}
-
-func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
-	if cellX < 0 || cellY < 0 || cellX >= chunk.Game.ChunkWidth || cellY >= chunk.Game.ChunkHeight {
-		return nil, fmt.Errorf("there is no cell in chunk at local position %v %v", cellX, cellY)
-	}
-	return chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
-}
-
-func (cell *Cell) Update() error {
-	kind := cell.Game().ElementData[cell.Type].Kind
-	if kind == nil {
-		return nil
-	}
-	return kind.Update(cell)
-}
-
-func (cell *Cell) GetCell(relativeX, relativeY int) (*Cell, error) {
-	return cell.Game().GetCell(cell.WorldX()+relativeX, cell.WorldY()+relativeY)
-}
-
-func (cell *Cell) Game() *Game {
-	return cell.Chunk.Game
-}
-
-func (cell *Cell) WorldX() int {
-	return cell.X + cell.Chunk.X*cell.Game().ChunkWidth
-}
-
-func (cell *Cell) WorldY() int {
-	return cell.Y + cell.Chunk.Y*cell.Game().ChunkHeight
-}
-
-func (cell *Cell) ElementData() *ElementData {
-	data := cell.Game().ElementData[cell.Type]
-	return &data
 }
