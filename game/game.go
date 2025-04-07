@@ -96,6 +96,7 @@ type Cell struct {
 	X, Y  int
 	Type  int
 	Chunk *Chunk
+	Data  *[]int
 }
 
 func (g *Game) TotalWidth() int {
@@ -428,7 +429,7 @@ func (cell *Cell) WorldY() int {
 	return cell.Y + cell.Chunk.Y*cell.Game().ChunkHeight
 }
 
-func (cell *Cell) Data() *ElementData {
+func (cell *Cell) ElementData() *ElementData {
 	data := cell.Game().ElementData[cell.Type]
 	return &data
 }
