@@ -26,6 +26,7 @@ type ElementData struct {
 	ElementTypeID   int
 	Role            string
 	Kind            ElementKind
+	Bouyancy        float32
 }
 
 type Game struct {
@@ -42,6 +43,7 @@ type Game struct {
 	ChunkOrder              []int
 	CellSize                float32
 	ElementScrollBar        ScrollBar
+	UpdateCycle             bool
 }
 
 func (g *Game) TotalWidth() int {
@@ -52,7 +54,15 @@ func (g *Game) TotalHeight() int {
 	return g.Height * g.ChunkHeight
 }
 
-func (g *Game) DefineElement(definition xmlhandler.XMLElementDefinition, elementTypeName string, colorString string, name string, role string, selectable bool) error {
+func (g *Game) DefineElement(
+	definition xmlhandler.XMLElementDefinition,
+	elementTypeName string,
+	colorString string,
+	name string,
+	role string,
+	selectable bool,
+	bouyancy float32,
+) error {
 	index := g.elementIdCounter
 	g.elementIdCounter++
 
@@ -80,6 +90,7 @@ func (g *Game) DefineElement(definition xmlhandler.XMLElementDefinition, element
 		ElementTypeName: elementTypeName,
 		ElementTypeID:   index,
 		Role:            role,
+		Bouyancy:        bouyancy,
 		Kind:            kind,
 	}
 
@@ -133,6 +144,8 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 
 	game.SelectedElement = -1 // No item selected
 
+	game.UpdateCycle = false
+
 	game.Width = width
 	game.Height = height
 
@@ -175,7 +188,12 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 			name = command.Name
 		}
 
-		if err := game.DefineElement(command, command.Name, col, name, command.Role, display.Selectable); err != nil {
+		material := command.Material
+		if material == nil {
+			material = &xmlhandler.XMLMaterialData{}
+		}
+
+		if err := game.DefineElement(command, command.Name, col, name, command.Role, display.Selectable, material.Density); err != nil {
 			return nil, err
 		}
 	}
@@ -230,6 +248,7 @@ func (game *Game) UpdateChunks() error {
 			return err
 		}
 	}
+	game.UpdateCycle = !game.UpdateCycle
 	return nil
 }
 

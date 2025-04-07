@@ -48,7 +48,6 @@ func NewChunk(game *Game, x, y int) Chunk {
 				X: x, Y: y,
 				Type:  cellType,
 				Chunk: &chunk,
-				Order: i,
 			}
 
 			chunk.Cells[i] = cell

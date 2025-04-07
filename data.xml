@@ -1,6 +1,9 @@
 <elements>
   <element name="air" role="air">
     <air />
+    <material>
+      <density>0.01</density>
+    </material>
     <display>
       <color>white</color>
       <name>Air</name>
@@ -10,6 +13,9 @@
 
   <element name="wall" role="wall">
     <immovable-solid />
+    <material>
+      <density>100000</density>
+    </material>
     <display>
       <color>black</color>
       <name>Wall</name>
@@ -19,6 +25,9 @@
 
   <element name="sand">
     <movable-solid />
+    <material>
+      <density>5</density>
+    </material>
     <display>
       <color>yellow</color>
       <name>Sand</name>
@@ -28,9 +37,24 @@
 
   <element name="water">
     <liquid />
+    <material>
+      <density>1</density>
+    </material>
     <display>
       <color>blue</color>
       <name>Water</name>
+      <selectable>true</selectable>
+    </display>
+  </element>
+
+  <element name="steam">
+    <liquid />
+    <material>
+      <density>0.005</density>
+    </material>
+    <display>
+      <color>cyan</color>
+      <name>Steam</name>
       <selectable>true</selectable>
     </display>
   </element>
