@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"strconv"
 
+	"go-falling-sand/util"
 	"go-falling-sand/xml_handler"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -81,15 +82,17 @@ type Game struct {
 	ElementData             map[int]ElementData
 	Width, Height           int
 	ChunkWidth, ChunkHeight int
-	Chunks                  []Chunk
+	Chunks                  []*Chunk
+	ChunkOrder              []*Chunk
 	CellSize                float32
 	ElementScrollBar        ScrollBar
 }
 
 type Chunk struct {
-	X, Y  int
-	Game  *Game
-	Cells []Cell
+	X, Y      int
+	Game      *Game
+	Cells     []*Cell
+	CellOrder []*Cell
 }
 
 type Cell struct {
@@ -124,6 +127,8 @@ func (g *Game) DefineElement(definition xmlhandler.XMLElementDefinition, element
 
 	if definition.MovableSolid != nil {
 		kind = MovableSolid{}
+	} else if definition.Liquid != nil {
+		kind = Liquid{}
 	}
 
 	g.ElementTypes[elementTypeName] = index
@@ -233,7 +238,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 		}
 	}
 
-	game.Chunks = make([]Chunk, game.WorldArea())
+	game.Chunks = make([]*Chunk, game.WorldArea())
 	for x := range game.Width {
 		for y := range game.Height {
 			i := game.CalculateChunkIndex(x, y)
@@ -241,10 +246,12 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 		}
 	}
 
+	game.ChunkOrder = game.Chunks
+
 	return game, nil
 }
 
-func NewChunk(game *Game, x, y int) Chunk {
+func NewChunk(game *Game, x, y int) *Chunk {
 	chunk := Chunk{}
 
 	chunk.Game = game
@@ -252,7 +259,7 @@ func NewChunk(game *Game, x, y int) Chunk {
 	chunk.X = x
 	chunk.Y = y
 
-	chunk.Cells = make([]Cell, game.ChunkArea())
+	chunk.Cells = make([]*Cell, game.ChunkArea())
 
 	for x := range game.ChunkWidth {
 		for y := range game.ChunkHeight {
@@ -270,7 +277,7 @@ func NewChunk(game *Game, x, y int) Chunk {
 				cellType = game.AirElement
 			}
 
-			chunk.Cells[i] = Cell{
+			chunk.Cells[i] = &Cell{
 				X: x, Y: y,
 				Type:  cellType,
 				Chunk: &chunk,
@@ -278,7 +285,9 @@ func NewChunk(game *Game, x, y int) Chunk {
 		}
 	}
 
-	return chunk
+	chunk.CellOrder = chunk.Cells
+
+	return &chunk
 }
 
 func (g *Game) CalculateChunkIndex(x, y int) int {
@@ -300,7 +309,7 @@ func (game *Game) Draw(screen *ebiten.Image) {
 		for y := range game.Height {
 			i := game.CalculateChunkIndex(x, y)
 
-			chunk := &game.Chunks[i]
+			chunk := game.Chunks[i]
 			chunk.Draw(screen)
 		}
 	}
@@ -313,7 +322,7 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 		for y := range chunk.Game.ChunkHeight {
 			i := chunk.Game.CalculateCellIndex(x, y)
 
-			cell := &chunk.Cells[i]
+			cell := chunk.Cells[i]
 
 			vector.DrawFilledRect(
 				screen,
@@ -329,8 +338,9 @@ func (chunk *Chunk) Draw(screen *ebiten.Image) {
 }
 
 func (game *Game) UpdateChunks() error {
-	for i := range game.Chunks {
-		chunk := game.Chunks[i]
+	util.Shuffle(game.ChunkOrder)
+	for i := range game.ChunkOrder {
+		chunk := game.ChunkOrder[i]
 		if err := chunk.Update(); err != nil {
 			return err
 		}
@@ -355,7 +365,7 @@ func (game *Game) GetChunk(chunkX, chunkY int) (*Chunk, error) {
 	if chunkX < 0 || chunkY < 0 || chunkX >= game.Width || chunkY >= game.Height {
 		return nil, fmt.Errorf("there is no chunk at chunk position %v %v", chunkX, chunkY)
 	}
-	return &game.Chunks[game.CalculateChunkIndex(chunkX, chunkY)], nil
+	return game.Chunks[game.CalculateChunkIndex(chunkX, chunkY)], nil
 }
 
 func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {
@@ -376,8 +386,8 @@ func (game *Game) GetCell(worldX, worldY int) (*Cell, error) {
 }
 
 func (chunk *Chunk) Update() error {
-	for i := range chunk.Cells {
-		cell := &chunk.Cells[i]
+	for i := range chunk.CellOrder {
+		cell := chunk.CellOrder[i]
 		if err := cell.Update(); err != nil {
 			return err
 		}
@@ -402,7 +412,7 @@ func (chunk *Chunk) GetCell(cellX, cellY int) (*Cell, error) {
 	if cellX < 0 || cellY < 0 || cellX >= chunk.Game.ChunkWidth || cellY >= chunk.Game.ChunkHeight {
 		return nil, fmt.Errorf("there is no cell in chunk at local position %v %v", cellX, cellY)
 	}
-	return &chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
+	return chunk.Cells[chunk.Game.CalculateCellIndex(cellX, cellY)], nil
 }
 
 func (cell *Cell) Update() error {

@@ -16,6 +16,7 @@ type XMLElementDefinition struct {
 	Air            *XMLAirData
 	ImmovableSolid *XMLImmovableSolidData
 	MovableSolid   *XMLMovableSolidData
+	Liquid         *XMLLiquidData
 }
 
 type XMLDisplay struct {
@@ -35,4 +36,8 @@ type XMLImmovableSolidData struct {
 
 type XMLMovableSolidData struct {
 	XMLName xml.Name `xml:"movable-solid"`
+}
+
+type XMLLiquidData struct {
+	XMLName xml.Name `xml:"liquid"`
 }

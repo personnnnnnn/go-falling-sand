@@ -25,4 +25,13 @@
       <selectable>true</selectable>
     </display>
   </element>
+
+  <element name="water">
+    <liquid />
+    <display>
+      <color>blue</color>
+      <name>Water</name>
+      <selectable>true</selectable>
+    </display>
+  </element>
 </elements>
