@@ -1,6 +1,8 @@
 package game
 
-import "errors"
+import (
+	"errors"
+)
 
 type Cell struct {
 	X, Y        int
@@ -20,7 +22,17 @@ func (cell *Cell) Update() error {
 	}
 	cell.UpdateCycle = !cell.UpdateCycle
 	kind := cell.ElementData().Kind
-	return kind.Update(cell)
+	if err := kind.Update(cell); err != nil {
+		return nil
+	}
+
+	for _, kind := range cell.ElementData().OtherKinds {
+		if err := kind.Update(cell); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (cell *Cell) GetCell(relativeX, relativeY int) (*Cell, error) {

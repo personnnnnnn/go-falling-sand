@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"image/color"
+	"strconv"
 
 	"go-falling-sand/util"
 	"go-falling-sand/xml_handler"
@@ -26,6 +27,7 @@ type ElementData struct {
 	ElementTypeID   int
 	Role            string
 	Kind            ElementKind
+	OtherKinds      []ElementKind
 	Bouyancy        float32
 }
 
@@ -98,6 +100,7 @@ func (g *Game) DefineElement(
 		Role:            role,
 		Bouyancy:        bouyancy,
 		Kind:            kind,
+		OtherKinds:      make([]ElementKind, 0, 2),
 	}
 
 	if role == ROLE_AIR {
@@ -130,6 +133,38 @@ func (g *Game) DefineElement(
 				}
 			},
 		})
+	}
+
+	if definition.Reactions != nil {
+		for _, reaction := range definition.Reactions.Reactions {
+			kind := &Reaction{
+				Actions:    make([]Action, 0, 2),
+				Conditions: make([]Condition, 0, 2),
+			}
+			for _, v := range reaction.Steps {
+				switch v.XMLName.Local {
+				case "turn-into":
+					{
+						if id, ok := g.ElementTypes[v.Value]; !ok {
+							return fmt.Errorf("there is no element named '%v'", v.Value)
+						} else {
+							kind.Actions = append(kind.Actions, &TurnInto{id})
+						}
+					}
+				case "chance":
+					{
+						if chance, err := strconv.ParseFloat(v.Value, 32); err != nil {
+							return err
+						} else {
+							kind.Conditions = append(kind.Conditions, &Chance{float32(chance)})
+						}
+					}
+				}
+			}
+			elementData := g.ElementData[index]
+			elementData.OtherKinds = append(elementData.OtherKinds, kind)
+			g.ElementData[index] = elementData
+		}
 	}
 
 	return nil

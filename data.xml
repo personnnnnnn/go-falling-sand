@@ -76,16 +76,26 @@
   </element>
 
   <element name="steam">
-    <gas>
-      <weight>0.001</weight>
-    </gas>
-    <material>
-      <density>0.005</density>
-    </material>
     <display>
       <color>cyan</color>
       <name>Steam</name>
       <selectable>true</selectable>
     </display>
+
+    <gas>
+      <weight>0.001</weight>
+    </gas>
+
+    <material>
+      <density>0.005</density>
+    </material>
+
+    <reactions>
+      <reaction>
+        <chance>.001</chance>
+        <turn-into>water</turn-into>
+      </reaction>
+    </reactions>
+
   </element>
 </elements>

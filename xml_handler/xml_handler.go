@@ -8,11 +8,12 @@ type XMLElementList struct {
 }
 
 type XMLElementDefinition struct {
-	XMLName  xml.Name         `xml:"element"`
-	Name     string           `xml:"name,attr"`
-	Role     string           `xml:"role,attr"`
-	Display  *XMLDisplay      `xml:"display"`
-	Material *XMLMaterialData `xml:"material"`
+	XMLName   xml.Name         `xml:"element"`
+	Name      string           `xml:"name,attr"`
+	Role      string           `xml:"role,attr"`
+	Display   *XMLDisplay      `xml:"display"`
+	Material  *XMLMaterialData `xml:"material"`
+	Reactions *XMLReactions    `xml:"reactions"`
 
 	Air            *XMLAirData
 	ImmovableSolid *XMLImmovableSolidData
@@ -58,4 +59,19 @@ type XMLDustData struct {
 type XMLMaterialData struct {
 	XMLName xml.Name `xml:"material"`
 	Density float32  `xml:"density"`
+}
+
+type XMLReactions struct {
+	XMLName   xml.Name      `xml:"reactions"`
+	Reactions []XMLReaction `xml:"reaction"`
+}
+
+type XMLReaction struct {
+	XMLName xml.Name       `xml:"reaction"`
+	Steps   []ReactionStep `xml:",any"`
+}
+
+type ReactionStep struct {
+	XMLName xml.Name
+	Value   string `xml:",chardata"`
 }
