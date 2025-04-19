@@ -78,9 +78,11 @@ func (g *Game) DefineElement(
 	var kind ElementKind = nil
 
 	if definition.MovableSolid != nil {
-		kind = MovableSolid{}
+		kind = &MovableSolid{}
 	} else if definition.Liquid != nil {
-		kind = Liquid{}
+		kind = &Liquid{}
+	} else if definition.Gas != nil {
+		kind = &Gas{definition.Gas.Weight}
 	}
 
 	g.ElementTypes[elementTypeName] = index

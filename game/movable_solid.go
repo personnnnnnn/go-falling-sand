@@ -4,6 +4,10 @@ import "math/rand"
 
 type MovableSolid struct{}
 
+func (MovableSolid) IsA(kind string) bool {
+	return kind == "Solid" || kind == "MovableSolid"
+}
+
 func (MovableSolid) Create(cell *Cell) error {
 	return nil
 }
@@ -14,9 +18,8 @@ func (MovableSolid) Update(cell *Cell) error {
 		return nil
 	}
 
-	if bottom.ElementData().Role == ROLE_AIR {
-		bottom.Type, cell.Type = cell.Type, bottom.Type
-		bottom.Data, cell.Data = cell.Data, bottom.Data
+	if cell.CanFallInto(bottom) && !bottom.IsSolid() {
+		cell.Switch(bottom)
 		return nil
 	}
 
@@ -29,9 +32,8 @@ func (MovableSolid) Update(cell *Cell) error {
 	if err != nil {
 		dir *= -1
 	} else {
-		if bottomLeft.ElementData().Role == ROLE_AIR {
-			bottomLeft.Type, cell.Type = cell.Type, bottomLeft.Type
-			bottomLeft.Data, cell.Data = cell.Data, bottomLeft.Data
+		if cell.CanMoveInto(bottomLeft) && !bottomLeft.IsSolid() {
+			cell.Switch(bottomLeft)
 			return nil
 		} else {
 			dir *= -1
@@ -42,9 +44,8 @@ func (MovableSolid) Update(cell *Cell) error {
 	if err != nil {
 		dir *= -1
 	} else {
-		if bottomRight.ElementData().Role == ROLE_AIR {
-			bottomRight.Type, cell.Type = cell.Type, bottomRight.Type
-			bottomRight.Data, cell.Data = cell.Data, bottomRight.Data
+		if cell.CanMoveInto(bottomRight) && !bottomRight.IsSolid() {
+			cell.Switch(bottomRight)
 			return nil
 		} else {
 			dir *= -1

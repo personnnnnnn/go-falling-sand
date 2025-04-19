@@ -55,12 +55,6 @@ func (cell *Cell) Switch(other *Cell) (*Cell, error) {
 		return nil, errors.New("can't switch places with nil cell")
 	}
 
-	cell.X, other.X = other.X, cell.X
-	cell.Y, other.Y = other.Y, cell.Y
-
-	cell.Chunk, other.Chunk = other.Chunk, cell.Chunk
-	cell.Data, other.Data = other.Data, cell.Data
-
 	cell.Type, other.Type = other.Type, cell.Type
 	cell.UpdateCycle, other.UpdateCycle = other.UpdateCycle, cell.UpdateCycle
 
@@ -72,4 +66,20 @@ func (cell *Cell) Switch(other *Cell) (*Cell, error) {
 	}
 
 	return other, nil
+}
+
+func (cell *Cell) CanFallInto(other *Cell) bool {
+	return other.ElementData().Bouyancy < cell.ElementData().Bouyancy
+}
+
+func (cell *Cell) CanMoveInto(other *Cell) bool {
+	return cell.CanFallInto(other) && !other.HasUpdated()
+}
+
+func (cell *Cell) IsA(kind string) bool {
+	return cell.ElementData().Kind.IsA(kind)
+}
+
+func (cell *Cell) IsSolid() bool {
+	return cell.IsA("Solid")
 }

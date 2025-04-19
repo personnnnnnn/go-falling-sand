@@ -1,6 +1,8 @@
 <elements>
   <element name="air" role="air">
-    <air />
+    <gas>
+      <weight>0.1</weight>
+    </gas>
     <material>
       <density>0.01</density>
     </material>
@@ -47,8 +49,36 @@
     </display>
   </element>
 
-  <element name="steam">
+  <element name="oil">
     <liquid />
+    <material>
+      <density>0.1</density>
+    </material>
+    <display>
+      <color>#88FF00</color>
+      <name>Oil</name>
+      <selectable>true</selectable>
+    </display>
+  </element>
+
+  <element name="dust">
+    <gas>
+      <weight>0.9</weight>
+    </gas>
+    <material>
+      <density>0.5</density>
+    </material>
+    <display>
+      <color>grey</color>
+      <name>Dust</name>
+      <selectable>true</selectable>
+    </display>
+  </element>
+
+  <element name="steam">
+    <gas>
+      <weight>0.2</weight>
+    </gas>
     <material>
       <density>0.005</density>
     </material>
