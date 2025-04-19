@@ -83,6 +83,10 @@ func (g *Game) DefineElement(
 		kind = &Liquid{}
 	} else if definition.Gas != nil {
 		kind = &Gas{definition.Gas.Weight}
+	} else if definition.Dust != nil {
+		kind = &Dust{definition.Dust.Weight}
+	} else {
+		kind = &DefaultKind{}
 	}
 
 	g.ElementTypes[elementTypeName] = index

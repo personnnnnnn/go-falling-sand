@@ -53,7 +53,7 @@ func (gas *Gas) Update(cell *Cell) error {
 
 	other, err := cell.GetCell(dx, dy)
 	if err == nil {
-		if cell.CanMoveInto(other) {
+		if other.IsA("Gas") {
 			cell.Switch(other)
 			return nil
 		}

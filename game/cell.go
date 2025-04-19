@@ -19,10 +19,7 @@ func (cell *Cell) Update() error {
 		return nil
 	}
 	cell.UpdateCycle = !cell.UpdateCycle
-	kind := cell.Game().ElementData[cell.Type].Kind
-	if kind == nil {
-		return nil
-	}
+	kind := cell.ElementData().Kind
 	return kind.Update(cell)
 }
 

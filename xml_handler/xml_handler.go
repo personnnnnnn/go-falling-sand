@@ -19,6 +19,7 @@ type XMLElementDefinition struct {
 	MovableSolid   *XMLMovableSolidData
 	Liquid         *XMLLiquidData
 	Gas            *XMLGasData
+	Dust           *XMLDustData
 }
 
 type XMLDisplay struct {
@@ -46,6 +47,11 @@ type XMLLiquidData struct {
 
 type XMLGasData struct {
 	XMLName xml.Name `xml:"gas"`
+	Weight  float32  `xml:"weight"`
+}
+
+type XMLDustData struct {
+	XMLName xml.Name `xml:"dust"`
 	Weight  float32  `xml:"weight"`
 }
 
