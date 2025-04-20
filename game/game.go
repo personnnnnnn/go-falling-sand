@@ -135,8 +135,12 @@ func (g *Game) DefineElement(
 		})
 	}
 
-	if definition.Reactions != nil {
-		for _, reaction := range definition.Reactions.Reactions {
+	return nil
+}
+
+func (g *Game) DefineTransformations(definiton xmlhandler.XMLElementDefinition, index int) error {
+	if definiton.Reactions != nil {
+		for _, reaction := range definiton.Reactions.Reactions {
 			kind := &Reaction{
 				Actions:    make([]Action, 0, 2),
 				Conditions: make([]Condition, 0, 2),
@@ -182,7 +186,6 @@ func (g *Game) DefineElement(
 			g.ElementData[index] = elementData
 		}
 	}
-
 	return nil
 }
 
@@ -251,6 +254,14 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 		}
 
 		if err := game.DefineElement(command, command.Name, col, name, command.Role, display.Selectable, material.Density); err != nil {
+			return nil, err
+		}
+	}
+
+	for i := range commands.Elements {
+		command := commands.Elements[i]
+		err := game.DefineTransformations(command, i)
+		if err != nil {
 			return nil, err
 		}
 	}

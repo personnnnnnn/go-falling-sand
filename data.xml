@@ -59,6 +59,13 @@
       <name>Oil</name>
       <selectable>true</selectable>
     </display>
+    <reactions>
+      <reaction>
+        <touching>fire</touching>
+        <chance>.13</chance>
+        <turn-into>fire</turn-into>
+      </reaction>
+    </reactions>
   </element>
 
   <element name="dust">
@@ -99,7 +106,39 @@
 
   </element>
 
-  <element name="fire">
+  <element name="smoke">
+    <display>
+      <color>#dddddd</color>
+      <name>Smoke</name>
+      <selectable>true</selectable>
+    </display>
 
+    <gas>
+      <weight>0.001</weight>
+    </gas>
+
+    <material>
+      <density>0.005</density>
+    </material>
+  </element>
+
+  <element name="fire">
+    <display>
+      <color>orange</color>
+      <name>Fire</name>
+      <selectable>true</selectable>
+    </display>
+    <gas>
+      <weight>0</weight>
+    </gas>
+    <material>
+      <density>0</density>
+    </material>
+    <reactions>
+      <reaction>
+        <chance>.05</chance>
+        <turn-into>smoke</turn-into>
+      </reaction>
+    </reactions>
   </element>
 </elements>
