@@ -11,12 +11,12 @@
   <reactions>
     <reaction>
       <touching>fire</touching>
-      <emit>fire</emit>
+      <chance>.01</chance>
+      <turn-into>fire</turn-into>
     </reaction>
     <reaction>
       <touching>fire</touching>
-      <chance>.01</chance>
-      <turn-into>fire</turn-into>
+      <emit>fire</emit>
     </reaction>
   </reactions>
 </element>

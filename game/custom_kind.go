@@ -5,12 +5,15 @@ import (
 	"math/rand"
 )
 
+const CUSTOM_DO_NOTHING = 0
+const CUSTOM_END = 1
+
 type Condition interface {
 	Satisfied(cell *Cell) (bool, error)
 }
 
 type Action interface {
-	Act(cell *Cell) error
+	Act(cell *Cell) (int, error)
 }
 
 type Reaction struct {
@@ -40,8 +43,10 @@ func (kind *Reaction) Update(cell *Cell) error {
 
 	for i := range kind.Actions {
 		result := kind.Actions[i]
-		if err := result.Act(cell); err != nil {
+		if res, err := result.Act(cell); err != nil {
 			return err
+		} else if res == CUSTOM_END {
+			return nil
 		}
 	}
 
@@ -52,9 +57,9 @@ type TurnInto struct {
 	ID int
 }
 
-func (kind *TurnInto) Act(cell *Cell) error {
+func (kind *TurnInto) Act(cell *Cell) (int, error) {
 	cell.Type = kind.ID
-	return nil
+	return CUSTOM_DO_NOTHING, nil
 }
 
 type Chance struct {
@@ -107,15 +112,21 @@ type Emit struct {
 	ID int
 }
 
-func (kind *Emit) Act(cell *Cell) error {
+func (kind *Emit) Act(cell *Cell) (int, error) {
 	dx, dy := util.GetRandomDir()
 	other, err := cell.GetCell(dx, dy)
 	if err != nil {
-		return nil
+		return CUSTOM_DO_NOTHING, nil
 	}
 	if other.ElementData().Role != ROLE_AIR {
-		return nil
+		return CUSTOM_DO_NOTHING, nil
 	}
 	other.Type = kind.ID
-	return nil
+	return CUSTOM_DO_NOTHING, nil
+}
+
+type End struct{}
+
+func (End) Act(cell *Cell) (int, error) {
+	return CUSTOM_END, nil
 }

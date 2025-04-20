@@ -51,7 +51,7 @@ func (cell *Cell) WorldY() int {
 	return cell.Y + cell.Chunk.Y*cell.Game().ChunkHeight
 }
 
-func (cell *Cell) ElementData() ElementData {
+func (cell *Cell) ElementData() *ElementData {
 	return cell.Game().ElementData[cell.Type]
 }
 

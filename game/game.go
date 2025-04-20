@@ -42,7 +42,7 @@ type Game struct {
 	WallElement             int
 	SelectedElement         int
 	ElementTypes            map[string]int
-	ElementData             map[int]ElementData
+	ElementData             map[int]*ElementData
 	Width, Height           int
 	ChunkWidth, ChunkHeight int
 	Chunks                  []Chunk
@@ -98,7 +98,7 @@ func (g *Game) DefineElement(
 	}
 
 	g.ElementTypes[elementTypeName] = index
-	g.ElementData[index] = ElementData{
+	g.ElementData[index] = &ElementData{
 		Color:           col,
 		Name:            name,
 		ElementTypeName: elementTypeName,
@@ -194,11 +194,14 @@ func (g *Game) DefineTransformations(definiton *xmlhandler.XMLElementDefinition)
 							kind.Conditions = append(kind.Conditions, &DirectlyTouching{id})
 						}
 					}
+				case "end":
+					{
+						kind.Actions = append(kind.Actions, &End{})
+					}
 				}
 			}
 			elementData := g.ElementData[index]
 			elementData.OtherKinds = append(elementData.OtherKinds, kind)
-			g.ElementData[index] = elementData
 		}
 	}
 	return nil
@@ -265,7 +268,7 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 	game.CellSize = cellSize
 	game.SideBarLength = sideBarLength
 
-	game.ElementData = map[int]ElementData{}
+	game.ElementData = map[int]*ElementData{}
 	game.ElementTypes = map[string]int{}
 
 	game.ElementScrollBar = NewScrollBar(
