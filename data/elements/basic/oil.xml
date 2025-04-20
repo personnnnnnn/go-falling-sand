@@ -1,0 +1,18 @@
+<element name="oil">
+  <liquid />
+  <material>
+    <density>0.1</density>
+  </material>
+  <display>
+    <color>#88FF00</color>
+    <name>Oil</name>
+    <selectable>true</selectable>
+  </display>
+  <reactions>
+    <reaction>
+      <touching>fire</touching>
+      <chance>.13</chance>
+      <turn-into>fire</turn-into>
+    </reaction>
+  </reactions>
+</element>

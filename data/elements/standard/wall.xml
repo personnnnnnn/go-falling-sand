@@ -1,0 +1,11 @@
+<element name="wall" role="wall">
+  <immovable-solid />
+  <material>
+    <density>100000</density>
+  </material>
+  <display>
+    <color>black</color>
+    <name>Wall</name>
+    <selectable>true</selectable>
+  </display>
+</element>

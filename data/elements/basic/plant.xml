@@ -1,0 +1,18 @@
+<element name="plant">
+  <display>
+    <name>Plant</name>
+    <color>green</color>
+    <selectable>true</selectable>
+  </display>
+  <immovable-solid />
+  <material>
+    <density>4</density>
+  </material>
+  <reactions>
+    <reaction>
+      <chance>.1</chance>
+      <touching>fire</touching>
+      <turn-into>fire</turn-into>
+    </reaction>
+  </reactions>
+</element>

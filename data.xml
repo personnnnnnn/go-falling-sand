@@ -1,5 +1,4 @@
-<elements xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:noNamespaceSchemaLocation="elements.xsd">
+<elements>
   <element name="air" role="air">
     <gas>
       <weight>0.1</weight>

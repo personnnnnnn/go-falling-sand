@@ -1,0 +1,13 @@
+<element name="dust">
+  <dust>
+    <weight>0.5</weight>
+  </dust>
+  <material>
+    <density>0.5</density>
+  </material>
+  <display>
+    <color>grey</color>
+    <name>Dust</name>
+    <selectable>true</selectable>
+  </display>
+</element>

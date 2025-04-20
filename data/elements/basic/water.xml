@@ -1,0 +1,11 @@
+<element name="water">
+  <liquid />
+  <material>
+    <density>1</density>
+  </material>
+  <display>
+    <color>blue</color>
+    <name>Water</name>
+    <selectable>true</selectable>
+  </display>
+</element>

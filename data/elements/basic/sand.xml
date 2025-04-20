@@ -1,0 +1,11 @@
+<element name="sand">
+  <movable-solid />
+  <material>
+    <density>5</density>
+  </material>
+  <display>
+    <color>yellow</color>
+    <name>Sand</name>
+    <selectable>true</selectable>
+  </display>
+</element>

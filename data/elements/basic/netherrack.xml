@@ -1,0 +1,17 @@
+<element name="netherrack">
+  <display>
+    <name>Netherrack</name>
+    <color>#aa0000</color>
+    <selectable>true</selectable>
+  </display>
+  <immovable-solid />
+  <material>
+    <density>4</density>
+  </material>
+  <reactions>
+    <reaction>
+      <touching>fire</touching>
+      <emit>fire</emit>
+    </reaction>
+  </reactions>
+</element>

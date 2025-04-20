@@ -1,0 +1,11 @@
+<element name="carbon-scrubber">
+  <display>
+    <name>Carbon Scrubber</name>
+    <color>#556655</color>
+    <selectable>true</selectable>
+  </display>
+  <immovable-solid />
+  <material>
+    <density>10</density>
+  </material>
+</element>

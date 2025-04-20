@@ -1,0 +1,23 @@
+<element name="fire">
+  <display>
+    <color>orange</color>
+    <name>Fire</name>
+    <selectable>true</selectable>
+  </display>
+  <gas>
+    <weight>0</weight>
+  </gas>
+  <material>
+    <density>0</density>
+  </material>
+  <reactions>
+    <reaction>
+      <chance>.025</chance>
+      <turn-into>smoke</turn-into>
+    </reaction>
+    <reaction>
+      <chance>.025</chance>
+      <turn-into>air</turn-into>
+    </reaction>
+  </reactions>
+</element>

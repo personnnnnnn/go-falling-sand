@@ -4,7 +4,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"image/color"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"go-falling-sand/util"
 	"go-falling-sand/xml_handler"
@@ -57,7 +61,7 @@ func (g *Game) TotalHeight() int {
 }
 
 func (g *Game) DefineElement(
-	definition xmlhandler.XMLElementDefinition,
+	definition *xmlhandler.XMLElementDefinition,
 	elementTypeName string,
 	colorString string,
 	name string,
@@ -140,7 +144,8 @@ func (g *Game) DefineElement(
 	return nil
 }
 
-func (g *Game) DefineTransformations(definiton xmlhandler.XMLElementDefinition, index int) error {
+func (g *Game) DefineTransformations(definiton *xmlhandler.XMLElementDefinition) error {
+	index := g.ElementTypes[definiton.Name]
 	if definiton.Reactions != nil {
 		for _, reaction := range definiton.Reactions.Reactions {
 			kind := &Reaction{
@@ -207,7 +212,42 @@ func (game *Game) WorldArea() int {
 	return game.Width * game.Height
 }
 
-func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, sideBarLength float32, xmlData []byte) (*Game, error) {
+func (game *Game) HandleCommand(command *xmlhandler.XMLElementDefinition) error {
+	display := command.Display
+	if display == nil {
+		display = &xmlhandler.XMLDisplay{}
+	}
+
+	col := display.Color
+	if col == "" {
+		col = "white"
+	}
+
+	name := display.Name
+	if name == "" {
+		name = command.Name
+	}
+
+	material := command.Material
+	if material == nil {
+		material = &xmlhandler.XMLMaterialData{}
+	}
+
+	if err := game.DefineElement(command, command.Name, col, name, command.Role, display.Selectable, material.Density); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (game *Game) HandleCommandReaction(command *xmlhandler.XMLElementDefinition) error {
+	err := game.DefineTransformations(command)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, sideBarLength float32, dataFolder string) (*Game, error) {
 	game := &Game{}
 
 	game.elementIdCounter = 0
@@ -228,52 +268,52 @@ func NewGame(width, height int, chunkWidth, chunkHeight int, cellSize float32, s
 	game.ElementData = map[int]ElementData{}
 	game.ElementTypes = map[string]int{}
 
-	var commands xmlhandler.XMLElementList
-	xml.Unmarshal(xmlData, &commands)
-
 	game.ElementScrollBar = NewScrollBar(
 		0,
 		sideBarLength,
 		30,
 		10,
 		color.RGBA{100, 100, 100, 255},
-		len(commands.Elements),
+		20,
 	)
 
-	for i := range commands.Elements {
-		command := commands.Elements[i]
-
-		display := command.Display
-		if display == nil {
-			display = &xmlhandler.XMLDisplay{}
+	matches := make([]string, 0, 20)
+	err := filepath.WalkDir(dataFolder, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-
-		col := display.Color
-		if col == "" {
-			col = "white"
+		if !d.IsDir() && strings.HasSuffix(path, ".xml") {
+			matches = append(matches, path)
 		}
+		return nil
+	})
 
-		name := display.Name
-		if name == "" {
-			name = command.Name
-		}
-
-		material := command.Material
-		if material == nil {
-			material = &xmlhandler.XMLMaterialData{}
-		}
-
-		if err := game.DefineElement(command, command.Name, col, name, command.Role, display.Selectable, material.Density); err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, fmt.Errorf("error while getting xml files: %v", err)
 	}
 
-	for i := range commands.Elements {
-		command := commands.Elements[i]
-		err := game.DefineTransformations(command, i)
+	results := make([]xmlhandler.XMLElementDefinition, 0, len(matches))
+
+	for _, file := range matches {
+		data, err := os.ReadFile(file)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to read file '%s': %v", file, err)
 		}
+
+		var elem xmlhandler.XMLElementDefinition
+		if err := xml.Unmarshal(data, &elem); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal file '%s': %v", file, err)
+		}
+
+		results = append(results, elem)
+	}
+
+	for _, result := range results {
+		game.HandleCommand(&result)
+	}
+
+	for _, result := range results {
+		game.HandleCommandReaction(&result)
 	}
 
 	game.Chunks = make([]Chunk, game.WorldArea())

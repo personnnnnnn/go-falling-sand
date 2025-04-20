@@ -1,0 +1,18 @@
+<element name="wood">
+  <display>
+    <name>Wood</name>
+    <color>brown</color>
+    <selectable>true</selectable>
+  </display>
+  <immovable-solid />
+  <material>
+    <density>7.5</density>
+  </material>
+  <reactions>
+    <reaction>
+      <touching>fire</touching>
+      <chance>.25</chance>
+      <turn-into>fire</turn-into>
+    </reaction>
+  </reactions>
+</element>

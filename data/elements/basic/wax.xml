@@ -1,0 +1,22 @@
+<element name="wax">
+  <display>
+    <name>Wax</name>
+    <color>#F2E69C</color>
+    <selectable>true</selectable>
+  </display>
+  <movable-solid />
+  <material>
+    <density>5</density>
+  </material>
+  <reactions>
+    <reaction>
+      <touching>fire</touching>
+      <emit>fire</emit>
+    </reaction>
+    <reaction>
+      <touching>fire</touching>
+      <chance>.01</chance>
+      <turn-into>fire</turn-into>
+    </reaction>
+  </reactions>
+</element>

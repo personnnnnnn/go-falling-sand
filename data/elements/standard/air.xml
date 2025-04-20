@@ -1,0 +1,13 @@
+<element name="air" role="air">
+  <gas>
+    <weight>0.1</weight>
+  </gas>
+  <material>
+    <density>0.01</density>
+  </material>
+  <display>
+    <color>white</color>
+    <name>Air</name>
+    <selectable>true</selectable>
+  </display>
+</element>
