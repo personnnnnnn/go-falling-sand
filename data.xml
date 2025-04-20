@@ -133,6 +133,10 @@
         <chance>.25</chance>
         <turn-into>plant</turn-into>
       </reaction>
+      <reaction>
+        <directly-touching>carbon-scrubber</directly-touching>
+        <turn-into>air</turn-into>
+      </reaction>
     </reactions>
   </element>
 
@@ -179,6 +183,29 @@
     </reactions>
   </element>
 
+  <element name="wax">
+    <display>
+      <name>Wax</name>
+      <color>#F2E69C</color>
+      <selectable>true</selectable>
+    </display>
+    <movable-solid />
+    <material>
+      <density>5</density>
+    </material>
+    <reactions>
+      <reaction>
+        <touching>fire</touching>
+        <emit>fire</emit>
+      </reaction>
+      <reaction>
+        <touching>fire</touching>
+        <chance>.01</chance>
+        <turn-into>fire</turn-into>
+      </reaction>
+    </reactions>
+  </element>
+
   <element name="plant">
     <display>
       <name>Plant</name>
@@ -196,6 +223,18 @@
         <turn-into>fire</turn-into>
       </reaction>
     </reactions>
+  </element>
+
+  <element name="carbon-scrubber">
+    <display>
+      <name>Carbon Scrubber</name>
+      <color>#556655</color>
+      <selectable>true</selectable>
+    </display>
+    <immovable-solid />
+    <material>
+      <density>10</density>
+    </material>
   </element>
 
   <element name="netherrack">
