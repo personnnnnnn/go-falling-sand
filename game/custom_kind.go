@@ -72,7 +72,7 @@ type Touching struct {
 func (kind *Touching) Satisfied(cell *Cell) (bool, error) {
 	for x := -1; x <= 1; x++ {
 		for y := -1; y <= 1; y++ {
-			if x != 0 && y != 0 {
+			if !(x == 0 && y == 0) {
 				if other, err := cell.GetCell(x, y); err != nil {
 					continue
 				} else if other.Type == kind.ID {

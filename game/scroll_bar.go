@@ -59,6 +59,9 @@ func (s *ScrollBar) AddItem(item ScrollBarItem) {
 }
 
 func (scrollBar *ScrollBar) GetHoveredItem(x, y float32) int {
+	y += scrollBar.Scroll
+	y += scrollBar.Padding
+
 	if x < scrollBar.X || x > scrollBar.X+scrollBar.Width {
 		return -1
 	}
@@ -73,9 +76,6 @@ func (scrollBar *ScrollBar) GetHoveredItem(x, y float32) int {
 }
 
 func (scrollBar *ScrollBar) ClickAt(x, y float32) error {
-	y -= scrollBar.Scroll
-	y += scrollBar.Padding
-
 	index := scrollBar.GetHoveredItem(x, y)
 	if index == -1 {
 		return nil
@@ -86,6 +86,7 @@ func (scrollBar *ScrollBar) ClickAt(x, y float32) error {
 }
 
 func (scrollBar *ScrollBar) Move(amt float32, x float32) {
+	amt *= -scrollBar.ElementHeight / 3
 	if x <= scrollBar.X || x >= scrollBar.X+scrollBar.Width {
 		return
 	}
@@ -100,7 +101,7 @@ func (scrollBar *ScrollBar) Move(amt float32, x float32) {
 
 	scrollBar.Scroll += amt
 
-	maxScroll := totalHeight - float32(Dimensions.Height)
+	maxScroll := totalHeight - float32(Dimensions.Height) + scrollBar.Padding*2
 	if scrollBar.Scroll < 0 {
 		scrollBar.Scroll = 0
 	} else if scrollBar.Scroll > maxScroll {

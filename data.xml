@@ -121,6 +121,19 @@
     <material>
       <density>0.005</density>
     </material>
+
+    <reactions>
+      <reaction>
+        <touching>plant</touching>
+        <chance>.75</chance>
+        <turn-into>air</turn-into>
+      </reaction>
+      <reaction>
+        <touching>plant</touching>
+        <chance>.25</chance>
+        <turn-into>plant</turn-into>
+      </reaction>
+    </reactions>
   </element>
 
   <element name="fire">
@@ -139,6 +152,44 @@
       <reaction>
         <chance>.05</chance>
         <turn-into>smoke</turn-into>
+      </reaction>
+    </reactions>
+  </element>
+
+  <element name="wood">
+    <display>
+      <name>Wood</name>
+      <color>brown</color>
+      <selectable>true</selectable>
+    </display>
+    <immovable-solid />
+    <material>
+      <density>7.5</density>
+    </material>
+    <reactions>
+      <reaction>
+        <touching>fire</touching>
+        <chance>.25</chance>
+        <turn-into>fire</turn-into>
+      </reaction>
+    </reactions>
+  </element>
+
+  <element name="plant">
+    <display>
+      <name>Plant</name>
+      <color>green</color>
+      <selectable>true</selectable>
+    </display>
+    <immovable-solid />
+    <material>
+      <density>4</density>
+    </material>
+    <reactions>
+      <reaction>
+        <chance>.25</chance>
+        <touching>fire</touching>
+        <turn-into>fire</turn-into>
       </reaction>
     </reactions>
   </element>

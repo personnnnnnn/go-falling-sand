@@ -62,7 +62,7 @@
               <xs:element name="reactions" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="reaction" maxOccurs="unbounded">
+                    <xs:element name="reaction" minOccurs="0" maxOccurs="unbounded">
                       <xs:complexType>
                         <xs:choice minOccurs="0" maxOccurs="unbounded">
                           <xs:element name="touching" type="xs:string" />
