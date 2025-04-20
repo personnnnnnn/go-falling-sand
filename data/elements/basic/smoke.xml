@@ -12,18 +12,20 @@
   </material>
   <reactions>
     <reaction>
-      <directly-touching>plant</directly-touching>
-      <chance>.75</chance>
+      <any>
+        <all>
+          <chance>.75</chance>
+          <directly-touching>plant</directly-touching>
+        </all>
+        <directly-touching>plant</directly-touching>
+      </any>
       <turn-into>air</turn-into>
+      <end />
     </reaction>
     <reaction>
       <directly-touching>plant</directly-touching>
-      <chance>.25</chance>
       <turn-into>plant</turn-into>
-    </reaction>
-    <reaction>
-      <directly-touching>carbon-scrubber</directly-touching>
-      <turn-into>air</turn-into>
+      <end />
     </reaction>
   </reactions>
 </element>

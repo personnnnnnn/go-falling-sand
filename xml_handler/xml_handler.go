@@ -73,5 +73,6 @@ type XMLReaction struct {
 
 type ReactionStep struct {
 	XMLName xml.Name
-	Value   string `xml:",chardata"`
+	Value   string         `xml:",chardata"`
+	Steps   []ReactionStep `xml:",any"`
 }

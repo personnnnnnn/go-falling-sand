@@ -146,22 +146,12 @@ func (g *Game) DefineElement(
 }
 
 type ReactionStatement interface {
-	IsAction() bool
-	IsCondition() bool
 	GetAction() (Action, error)
 	GetCondition() (Condition, error)
 }
 
 type ReactionActionStatement struct {
 	Action
-}
-
-func (ReactionActionStatement) IsAction() bool {
-	return true
-}
-
-func (ReactionActionStatement) IsCondition() bool {
-	return false
 }
 
 func (reactionActionStatement *ReactionActionStatement) GetAction() (Action, error) {
@@ -174,14 +164,6 @@ func (reactionActionStatement *ReactionActionStatement) GetCondition() (Conditio
 
 type ConditionReactionStatement struct {
 	Condition
-}
-
-func (ConditionReactionStatement) IsAction() bool {
-	return true
-}
-
-func (ConditionReactionStatement) IsCondition() bool {
-	return false
 }
 
 func (conditionReactionStatement *ConditionReactionStatement) GetCondition() (Condition, error) {
@@ -201,7 +183,7 @@ func (g *Game) HandleReactionStep(reactionSteps []xmlhandler.ReactionStep) ([]Re
 				if id, ok := g.ElementTypes[v.Value]; !ok {
 					return nil, fmt.Errorf("there is no element named '%v'", v.Value)
 				} else {
-					statements = append(statements, &ReactionActionStatement{&TurnInto{id}}) // why does "&ReactionActionStatement{&TurnInto{id}}" say "cannot use &ReactionActionStatement{…} (value of type *ReactionActionStatement) as *ReactionStatement value in argument to append: *ReactionActionStatement does not implement *ReactionStatement (type *ReactionStatement is pointer to interface, not interface)compilerInvalidIfaceAssign"?
+					statements = append(statements, &ReactionActionStatement{&TurnInto{id}})
 				}
 			}
 		case "emit":
@@ -240,6 +222,70 @@ func (g *Game) HandleReactionStep(reactionSteps []xmlhandler.ReactionStep) ([]Re
 			{
 				statements = append(statements, &ReactionActionStatement{&End{}})
 			}
+		case "any":
+			{
+				nested, err := g.HandleReactionStep(v.Steps)
+				if err != nil {
+					return nil, err
+				}
+				conds := make([]Condition, 0)
+				for _, stmt := range nested {
+					if cond, err := stmt.GetCondition(); err == nil {
+						conds = append(conds, cond)
+					} else {
+						return nil, fmt.Errorf("<any> can only contain conditions, but got action")
+					}
+				}
+				statements = append(statements, &ConditionReactionStatement{&Any{conds}})
+			}
+		case "none":
+			{
+				nested, err := g.HandleReactionStep(v.Steps)
+				if err != nil {
+					return nil, err
+				}
+				conds := make([]Condition, 0)
+				for _, stmt := range nested {
+					if cond, err := stmt.GetCondition(); err == nil {
+						conds = append(conds, cond)
+					} else {
+						return nil, fmt.Errorf("<none> can only contain conditions, but got action")
+					}
+				}
+				statements = append(statements, &ConditionReactionStatement{&None{conds}})
+			}
+		case "all":
+			{
+				nested, err := g.HandleReactionStep(v.Steps)
+				if err != nil {
+					return nil, err
+				}
+				conds := make([]Condition, 0)
+				for _, stmt := range nested {
+					if cond, err := stmt.GetCondition(); err == nil {
+						conds = append(conds, cond)
+					} else {
+						return nil, fmt.Errorf("<all> can only contain conditions, but got action")
+					}
+				}
+				statements = append(statements, &ConditionReactionStatement{&All{conds}})
+			}
+		case "not":
+			{
+				nested, err := g.HandleReactionStep(v.Steps)
+				if err != nil {
+					return nil, err
+				}
+				conds := make([]Condition, 0)
+				for _, stmt := range nested {
+					if cond, err := stmt.GetCondition(); err == nil {
+						conds = append(conds, cond)
+					} else {
+						return nil, fmt.Errorf("<not> can only contain conditions, but got action")
+					}
+				}
+				statements = append(statements, &ConditionReactionStatement{&Not{conds}})
+			}
 		}
 	}
 	return statements, nil
@@ -258,18 +304,15 @@ func (g *Game) DefineTransformations(definiton *xmlhandler.XMLElementDefinition)
 				return err
 			}
 			for _, statement := range statements {
-				if statement.IsAction() {
-					if action, err := statement.GetAction(); err != nil {
-						return fmt.Errorf("unexpected error while unpacking action: %v", err)
-					} else {
-						kind.Actions = append(kind.Actions, action)
+				action, err := statement.GetAction()
+				if err != nil {
+					condition, err := statement.GetCondition()
+					if err != nil {
+						return fmt.Errorf("wtf: %v", err)
 					}
-				} else if statement.IsCondition() {
-					if condition, err := statement.GetCondition(); err != nil {
-						return fmt.Errorf("unexpected error while unpacking condition: %v", err)
-					} else {
-						kind.Conditions = append(kind.Conditions, condition)
-					}
+					kind.Conditions = append(kind.Conditions, condition)
+				} else {
+					kind.Actions = append(kind.Actions, action)
 				}
 			}
 			elementData := g.ElementData[index]

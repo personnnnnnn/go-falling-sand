@@ -13,6 +13,7 @@
       <touching>fire</touching>
       <chance>.01</chance>
       <turn-into>fire</turn-into>
+      <end />
     </reaction>
     <reaction>
       <touching>fire</touching>

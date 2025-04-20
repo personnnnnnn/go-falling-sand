@@ -130,3 +130,63 @@ type End struct{}
 func (End) Act(cell *Cell) (int, error) {
 	return CUSTOM_END, nil
 }
+
+type Any struct {
+	Conditions []Condition
+}
+
+func (any *Any) Satisfied(cell *Cell) (bool, error) {
+	for _, condition := range any.Conditions {
+		if res, err := condition.Satisfied(cell); err != nil {
+			return false, err
+		} else if res {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+type None struct {
+	Consitions []Condition
+}
+
+func (none *None) Satisfied(cell *Cell) (bool, error) {
+	for _, condition := range none.Consitions {
+		if res, err := condition.Satisfied(cell); err != nil {
+			return false, err
+		} else if res {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+type All struct {
+	Conditions []Condition
+}
+
+func (all *All) Satisfied(cell *Cell) (bool, error) {
+	for _, condition := range all.Conditions {
+		if res, err := condition.Satisfied(cell); err != nil {
+			return false, err
+		} else if !res {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+type Not struct {
+	Conditions []Condition
+}
+
+func (not *Not) Satisfied(cell *Cell) (bool, error) {
+	for _, condition := range not.Conditions {
+		if res, err := condition.Satisfied(cell); err != nil {
+			return false, err
+		} else if !res {
+			return true, nil
+		}
+	}
+	return false, nil
+}
