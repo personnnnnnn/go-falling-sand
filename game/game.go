@@ -181,6 +181,14 @@ func (g *Game) DefineTransformations(definiton xmlhandler.XMLElementDefinition, 
 							kind.Conditions = append(kind.Conditions, &Touching{id})
 						}
 					}
+				case "directly-touching":
+					{
+						if id, ok := g.ElementTypes[v.Value]; !ok {
+							return fmt.Errorf("there is no element named '%v'", v.Value)
+						} else {
+							kind.Conditions = append(kind.Conditions, &DirectlyTouching{id})
+						}
+					}
 				}
 			}
 			elementData := g.ElementData[index]

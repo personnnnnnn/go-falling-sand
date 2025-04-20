@@ -43,3 +43,26 @@ func GetDir(n int) (int, int) {
 func GetRandomDir() (int, int) {
 	return GetDir(rand.Intn(8))
 }
+
+func GetAdjDir(n int) (int, int) {
+	var dx int
+	var dy int
+	if n == 0 {
+		dx = 0
+		dy = 1
+	} else if n == 1 {
+		dx = 1
+		dy = 0
+	} else if n == 2 {
+		dx = 0
+		dy = -1
+	} else {
+		dx = -1
+		dy = 0
+	}
+	return dx, dy
+}
+
+func GetRandomAdjDir() (int, int) {
+	return GetAdjDir(rand.Intn(4))
+}

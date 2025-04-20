@@ -124,12 +124,12 @@
 
     <reactions>
       <reaction>
-        <touching>plant</touching>
+        <directly-touching>plant</directly-touching>
         <chance>.75</chance>
         <turn-into>air</turn-into>
       </reaction>
       <reaction>
-        <touching>plant</touching>
+        <directly-touching>plant</directly-touching>
         <chance>.25</chance>
         <turn-into>plant</turn-into>
       </reaction>
@@ -150,8 +150,12 @@
     </material>
     <reactions>
       <reaction>
-        <chance>.05</chance>
+        <chance>.025</chance>
         <turn-into>smoke</turn-into>
+      </reaction>
+      <reaction>
+        <chance>.025</chance>
+        <turn-into>air</turn-into>
       </reaction>
     </reactions>
   </element>
@@ -187,9 +191,27 @@
     </material>
     <reactions>
       <reaction>
-        <chance>.25</chance>
+        <chance>.1</chance>
         <touching>fire</touching>
         <turn-into>fire</turn-into>
+      </reaction>
+    </reactions>
+  </element>
+
+  <element name="netherrack">
+    <display>
+      <name>Netherrack</name>
+      <color>#aa0000</color>
+      <selectable>true</selectable>
+    </display>
+    <immovable-solid />
+    <material>
+      <density>4</density>
+    </material>
+    <reactions>
+      <reaction>
+        <touching>fire</touching>
+        <emit>fire</emit>
       </reaction>
     </reactions>
   </element>

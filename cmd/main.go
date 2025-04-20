@@ -26,7 +26,7 @@ func main() {
 
 	xmlFile.Close()
 
-	if g, err := game.NewGame(4, 4, 10, 10, 10, 200, byteValue); err != nil {
+	if g, err := game.NewGame(8, 8, 10, 10, 5, 200, byteValue); err != nil {
 		log.Fatal(err)
 	} else if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
