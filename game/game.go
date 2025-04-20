@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"image/color"
 	"io/fs"
@@ -144,6 +145,106 @@ func (g *Game) DefineElement(
 	return nil
 }
 
+type ReactionStatement interface {
+	IsAction() bool
+	IsCondition() bool
+	GetAction() (Action, error)
+	GetCondition() (Condition, error)
+}
+
+type ReactionActionStatement struct {
+	Action
+}
+
+func (ReactionActionStatement) IsAction() bool {
+	return true
+}
+
+func (ReactionActionStatement) IsCondition() bool {
+	return false
+}
+
+func (reactionActionStatement *ReactionActionStatement) GetAction() (Action, error) {
+	return reactionActionStatement.Action, nil
+}
+
+func (reactionActionStatement *ReactionActionStatement) GetCondition() (Condition, error) {
+	return nil, errors.New("can't call 'GetCondition' on a ReactionStatement struct")
+}
+
+type ConditionReactionStatement struct {
+	Condition
+}
+
+func (ConditionReactionStatement) IsAction() bool {
+	return true
+}
+
+func (ConditionReactionStatement) IsCondition() bool {
+	return false
+}
+
+func (conditionReactionStatement *ConditionReactionStatement) GetCondition() (Condition, error) {
+	return conditionReactionStatement.Condition, nil
+}
+
+func (conditionReactionStatement *ConditionReactionStatement) GetAction() (Action, error) {
+	return nil, errors.New("can't call 'GetAction' on a ConditionStatement struct")
+}
+
+func (g *Game) HandleReactionStep(reactionSteps []xmlhandler.ReactionStep) ([]ReactionStatement, error) {
+	statements := make([]ReactionStatement, 0, len(reactionSteps))
+	for _, v := range reactionSteps {
+		switch v.XMLName.Local {
+		case "turn-into":
+			{
+				if id, ok := g.ElementTypes[v.Value]; !ok {
+					return nil, fmt.Errorf("there is no element named '%v'", v.Value)
+				} else {
+					statements = append(statements, &ReactionActionStatement{&TurnInto{id}}) // why does "&ReactionActionStatement{&TurnInto{id}}" say "cannot use &ReactionActionStatement{…} (value of type *ReactionActionStatement) as *ReactionStatement value in argument to append: *ReactionActionStatement does not implement *ReactionStatement (type *ReactionStatement is pointer to interface, not interface)compilerInvalidIfaceAssign"?
+				}
+			}
+		case "emit":
+			{
+				if id, ok := g.ElementTypes[v.Value]; !ok {
+					return nil, fmt.Errorf("there is no element named '%v'", v.Value)
+				} else {
+					statements = append(statements, &ReactionActionStatement{&Emit{id}})
+				}
+			}
+		case "chance":
+			{
+				if chance, err := strconv.ParseFloat(v.Value, 32); err != nil {
+					return nil, fmt.Errorf("error while parsing float in xml: %v", err)
+				} else {
+					statements = append(statements, &ConditionReactionStatement{&Chance{float32(chance)}})
+				}
+			}
+		case "touching":
+			{
+				if id, ok := g.ElementTypes[v.Value]; !ok {
+					return nil, fmt.Errorf("there is no element named '%v'", v.Value)
+				} else {
+					statements = append(statements, &ConditionReactionStatement{&Touching{id}})
+				}
+			}
+		case "directly-touching":
+			{
+				if id, ok := g.ElementTypes[v.Value]; !ok {
+					return nil, fmt.Errorf("there is no element named '%v'", v.Value)
+				} else {
+					statements = append(statements, &ConditionReactionStatement{&DirectlyTouching{id}})
+				}
+			}
+		case "end":
+			{
+				statements = append(statements, &ReactionActionStatement{&End{}})
+			}
+		}
+	}
+	return statements, nil
+}
+
 func (g *Game) DefineTransformations(definiton *xmlhandler.XMLElementDefinition) error {
 	index := g.ElementTypes[definiton.Name]
 	if definiton.Reactions != nil {
@@ -152,51 +253,22 @@ func (g *Game) DefineTransformations(definiton *xmlhandler.XMLElementDefinition)
 				Actions:    make([]Action, 0, 2),
 				Conditions: make([]Condition, 0, 2),
 			}
-			for _, v := range reaction.Steps {
-				switch v.XMLName.Local {
-				case "turn-into":
-					{
-						if id, ok := g.ElementTypes[v.Value]; !ok {
-							return fmt.Errorf("there is no element named '%v'", v.Value)
-						} else {
-							kind.Actions = append(kind.Actions, &TurnInto{id})
-						}
+			statements, err := g.HandleReactionStep(reaction.Steps)
+			if err != nil {
+				return err
+			}
+			for _, statement := range statements {
+				if statement.IsAction() {
+					if action, err := statement.GetAction(); err != nil {
+						return fmt.Errorf("unexpected error while unpacking action: %v", err)
+					} else {
+						kind.Actions = append(kind.Actions, action)
 					}
-				case "emit":
-					{
-						if id, ok := g.ElementTypes[v.Value]; !ok {
-							return fmt.Errorf("there is no element named '%v'", v.Value)
-						} else {
-							kind.Actions = append(kind.Actions, &Emit{id})
-						}
-					}
-				case "chance":
-					{
-						if chance, err := strconv.ParseFloat(v.Value, 32); err != nil {
-							return err
-						} else {
-							kind.Conditions = append(kind.Conditions, &Chance{float32(chance)})
-						}
-					}
-				case "touching":
-					{
-						if id, ok := g.ElementTypes[v.Value]; !ok {
-							return fmt.Errorf("there is no element named '%v'", v.Value)
-						} else {
-							kind.Conditions = append(kind.Conditions, &Touching{id})
-						}
-					}
-				case "directly-touching":
-					{
-						if id, ok := g.ElementTypes[v.Value]; !ok {
-							return fmt.Errorf("there is no element named '%v'", v.Value)
-						} else {
-							kind.Conditions = append(kind.Conditions, &DirectlyTouching{id})
-						}
-					}
-				case "end":
-					{
-						kind.Actions = append(kind.Actions, &End{})
+				} else if statement.IsCondition() {
+					if condition, err := statement.GetCondition(); err != nil {
+						return fmt.Errorf("unexpected error while unpacking condition: %v", err)
+					} else {
+						kind.Conditions = append(kind.Conditions, condition)
 					}
 				}
 			}
