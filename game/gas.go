@@ -1,6 +1,7 @@
 package game
 
 import (
+	"go-falling-sand/util"
 	"math/rand"
 )
 
@@ -20,32 +21,7 @@ func (gas *Gas) Update(cell *Cell) error {
 	var dx int
 	var dy int
 	if rand.Float32() > gas.Weight {
-		n := rand.Intn(8)
-		if n == 0 {
-			dx = 0
-			dy = 1
-		} else if n == 1 {
-			dx = 1
-			dy = 1
-		} else if n == 2 {
-			dx = 1
-			dy = 0
-		} else if n == 3 {
-			dx = 1
-			dy = -1
-		} else if n == 4 {
-			dx = 0
-			dy = -1
-		} else if n == 5 {
-			dx = -1
-			dy = -1
-		} else if n == 6 {
-			dx = -1
-			dy = 0
-		} else {
-			dx = -1
-			dy = 1
-		}
+		dx, dy = util.GetRandomDir()
 	} else {
 		dx = rand.Intn(3) - 1
 		dy = 1

@@ -8,3 +8,38 @@ func Shuffle[T any](array []T) {
 		array[i], array[j] = array[j], array[i]
 	}
 }
+
+func GetDir(n int) (int, int) {
+	var dx int
+	var dy int
+	if n == 0 {
+		dx = 0
+		dy = 1
+	} else if n == 1 {
+		dx = 1
+		dy = 1
+	} else if n == 2 {
+		dx = 1
+		dy = 0
+	} else if n == 3 {
+		dx = 1
+		dy = -1
+	} else if n == 4 {
+		dx = 0
+		dy = -1
+	} else if n == 5 {
+		dx = -1
+		dy = -1
+	} else if n == 6 {
+		dx = -1
+		dy = 0
+	} else {
+		dx = -1
+		dy = 1
+	}
+	return dx, dy
+}
+
+func GetRandomDir() (int, int) {
+	return GetDir(rand.Intn(8))
+}

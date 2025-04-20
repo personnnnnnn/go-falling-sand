@@ -151,12 +151,28 @@ func (g *Game) DefineElement(
 							kind.Actions = append(kind.Actions, &TurnInto{id})
 						}
 					}
+				case "emit":
+					{
+						if id, ok := g.ElementTypes[v.Value]; !ok {
+							return fmt.Errorf("there is no element named '%v'", v.Value)
+						} else {
+							kind.Actions = append(kind.Actions, &Emit{id})
+						}
+					}
 				case "chance":
 					{
 						if chance, err := strconv.ParseFloat(v.Value, 32); err != nil {
 							return err
 						} else {
 							kind.Conditions = append(kind.Conditions, &Chance{float32(chance)})
+						}
+					}
+				case "touching":
+					{
+						if id, ok := g.ElementTypes[v.Value]; !ok {
+							return fmt.Errorf("there is no element named '%v'", v.Value)
+						} else {
+							kind.Conditions = append(kind.Conditions, &Touching{id})
 						}
 					}
 				}

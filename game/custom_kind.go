@@ -1,6 +1,9 @@
 package game
 
-import "math/rand"
+import (
+	"go-falling-sand/util"
+	"math/rand"
+)
 
 type Condition interface {
 	Satisfied(cell *Cell) (bool, error)
@@ -60,4 +63,40 @@ type Chance struct {
 
 func (kind *Chance) Satisfied(cell *Cell) (bool, error) {
 	return rand.Float32() < kind.Chance, nil
+}
+
+type Touching struct {
+	ID int
+}
+
+func (kind *Touching) Satisfied(cell *Cell) (bool, error) {
+	for x := -1; x <= 1; x++ {
+		for y := -1; y <= 1; y++ {
+			if x != 0 && y != 0 {
+				if other, err := cell.GetCell(x, y); err != nil {
+					continue
+				} else if other.Type == kind.ID {
+					return true, nil
+				}
+			}
+		}
+	}
+	return false, nil
+}
+
+type Emit struct {
+	ID int
+}
+
+func (kind *Emit) Act(cell *Cell) error {
+	dx, dy := util.GetRandomDir()
+	other, err := cell.GetCell(dx, dy)
+	if err != nil {
+		return nil
+	}
+	if other.ElementData().Role != ROLE_AIR {
+		return nil
+	}
+	other.Type = kind.ID
+	return nil
 }
