@@ -87,6 +87,8 @@ func (g *Game) DefineElement(
 		kind = &Gas{definition.Gas.Weight}
 	} else if definition.Dust != nil {
 		kind = &Dust{definition.Dust.Weight}
+	} else if definition.ImmovableSolid != nil {
+		kind = &ImmovableSolid{}
 	} else {
 		kind = &DefaultKind{}
 	}
