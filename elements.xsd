@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
+  <xs:simpleType name="roleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="none" />
+      <xs:enumeration value="air" />
+      <xs:enumeration value="wall" />
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:element name="elements">
     <xs:complexType>
       <xs:sequence>
@@ -71,7 +79,7 @@
 
             <!-- Attributes -->
             <xs:attribute name="name" type="xs:string" use="required" />
-            <xs:attribute name="role" type="xs:string" use="optional" />
+            <xs:attribute name="role" type="roleType" use="optional" />
           </xs:complexType>
         </xs:element>
       </xs:sequence>
